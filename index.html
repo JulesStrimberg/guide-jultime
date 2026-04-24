@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Guide Jultime 🍕 Milan · Paris · Lyon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:     #FFF9F0;
+      --dark:   #1A1A2E;
+      --white:  #FFFFFF;
+      --yellow: #FFD23F;
+      --orange: #FF6B35;
+      --red:    #E5383B;
+      --green:  #2DC653;
+      --teal:   #00B4D8;
+      --purple: #7C3AED;
+      --pink:   #F72585;
+
+      --milan-c:  #7C3AED;
+      --paris-c:  #DC2626;
+      --lyon-c:   #D97706;
+
+      --r:   16px;
+      --rsm: 10px;
+      --shadow: 0 4px 0 rgba(0,0,0,0.13);
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(circle, #d8cfc080 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      background: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      font-size: 1.85rem;
+      line-height: 3.2rem;
+      letter-spacing: 1.8rem;
+      opacity: 0.07;
+      padding: 1rem;
+      overflow: hidden;
+      pointer-events: none;
+      word-break: break-all;
+    }
+
+    /* Colorful blobs */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+      top: -150px; left: -100px;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(220,38,38,0.2) 0%, transparent 70%);
+      bottom: -100px; right: -80px;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--yellow);
+      color: var(--dark);
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.5rem 1.4rem;
+      border-radius: 100px;
+      margin-bottom: 1.75rem;
+      animation: popIn 0.5s ease 0.3s backwards;
+    }
+
+    .hero h1 {
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      font-size: clamp(4.5rem, 13vw, 10rem);
+      color: white;
+      line-height: 0.92;
+      margin-bottom: 1.4rem;
+      animation: popIn 0.6s ease 0.5s backwards;
+    }
+    .hero h1 .accent { color: var(--yellow); display: block; }
+
+    .hero-cities {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      margin-bottom: 2rem;
+      animation: popIn 0.5s ease 0.7s backwards;
+    }
+    .cdot {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.65);
+    }
+    .cdot .d {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      display: block;
+    }
+    .cdot.mil .d { background: #A78BFA; }
+    .cdot.par .d { background: #FCA5A5; }
+    .cdot.lyo .d { background: #FCD34D; }
+    .hero-sep { color: rgba(255,255,255,0.2); font-size: 1.2rem; }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      margin-bottom: 2.75rem;
+      animation: popIn 0.5s ease 0.9s backwards;
+    }
+    .hstat { text-align: center; }
+    .hstat-n {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--yellow);
+      line-height: 1;
+    }
+    .hstat-l {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--yellow);
+      color: var(--dark);
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      padding: 1rem 2.75rem;
+      border-radius: 100px;
+      text-decoration: none;
+      box-shadow: 0 5px 0 #b88e00;
+      transition: all 0.15s ease;
+      animation: popIn 0.5s ease 1.1s backwards;
+    }
+    .hero-cta:hover  { transform: translateY(-3px); box-shadow: 0 8px 0 #b88e00; }
+    .hero-cta:active { transform: translateY(2px);  box-shadow: 0 2px 0 #b88e00; }
+
+    .scroll-arrow {
+      position: absolute;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.2);
+      font-size: 1.5rem;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    /* ── SHARED SECTION ───────────────────────────────── */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .sec-head {
+      text-align: center;
+      margin-bottom: 2.75rem;
+    }
+    .sec-head h2 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .sec-head p {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #6B7280;
+    }
+
+    /* ── CITY CARDS ───────────────────────────────────── */
+    .cities-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .ccard {
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 3px solid var(--dark);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .ccard:hover {
+      transform: translateY(-5px) rotate(-0.4deg);
+      box-shadow: 0 9px 0 rgba(0,0,0,0.15);
+    }
+
+    .ccard-top {
+      padding: 1.75rem 1.5rem 1.5rem;
+      position: relative;
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .ccard-milan .ccard-top { background: linear-gradient(135deg,#3B0764,#7C3AED,#A78BFA); }
+    .ccard-paris .ccard-top { background: linear-gradient(135deg,#7F1D1D,#DC2626,#F87171); }
+    .ccard-lyon  .ccard-top { background: linear-gradient(135deg,#78350F,#D97706,#FCD34D); }
+
+    .ccard-badge {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(6px);
+      color: white;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      border: 1.5px solid rgba(255,255,255,0.28);
+    }
+
+    .ccard-emoji {
+      font-size: 3.5rem;
+      margin-bottom: 0.9rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+    }
+
+    .ccard-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: white;
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+    .ccard-sub {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .ccard-bottom {
+      padding: 1rem 1.25rem;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .btn-list {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.62rem 0.9rem;
+      border-radius: var(--rsm);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.72rem;
+      text-decoration: none;
+      border: 2.5px solid;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn-list:hover { opacity: 0.78; transform: scale(0.97); }
+    .ccard-milan .btn-list { background: #EDE9FE; color: #4C1D95; border-color: #7C3AED; }
+    .ccard-paris .btn-list { background: #FEE2E2; color: #7F1D1D; border-color: #DC2626; }
+    .ccard-lyon  .btn-list { background: #FEF3C7; color: #78350F; border-color: #D97706; }
+
+    .btn-mapico {
+      width: 38px; height: 38px;
+      border-radius: var(--rsm);
+      background: var(--dark);
+      color: white;
+      font-size: 1rem;
+      border: 2.5px solid var(--dark);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-mapico:hover { background: #333; }
+    .btn-mapico.open  { background: var(--orange); border-color: var(--orange); font-size: 0.75rem; }
+
+    .map-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+    }
+    .map-panel.open { max-height: 340px; }
+    .map-panel iframe {
+      width: 100%; height: 310px;
+      border: none; display: block;
+    }
+
+    /* ── PLACES ───────────────────────────────────────── */
+    .places-section { padding-top: 0; }
+
+    .filters-bar {
+      background: white;
+      border-radius: var(--r);
+      border: 3px solid var(--dark);
+      box-shadow: var(--shadow);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.2rem;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .fg { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+    .fg + .fg { padding-left: 1.2rem; border-left: 2.5px solid #F3F4F6; }
+    .fg-lbl {
+      font-weight: 800;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin-right: 0.15rem;
+    }
+
+    .fbtn {
+      display: flex; align-items: center; gap: 0.3rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 100px;
+      border: 2px solid #E5E7EB;
+      background: transparent;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700; font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--dark);
+    }
+    .fbtn:hover { border-color: var(--dark); }
+    .fbtn.active { background: var(--dark); border-color: var(--dark); color: white; }
+
+    .fbtn[data-value="milan"].active  { background: #7C3AED; border-color: #7C3AED; }
+    .fbtn[data-value="paris"].active  { background: #DC2626; border-color: #DC2626; }
+    .fbtn[data-value="lyon"].active   { background: #D97706; border-color: #D97706; }
+    .fbtn[data-value="café"].active        { background: #92400E; border-color: #92400E; }
+    .fbtn[data-value="restaurant"].active  { background: #991B1B; border-color: #991B1B; }
+    .fbtn[data-value="bar"].active         { background: #1E3A8A; border-color: #1E3A8A; }
+    .fbtn[data-value="pâtisserie"].active  { background: #9D174D; border-color: #9D174D; }
+    .fbtn[data-value="pizzeria"].active    { background: #C2410C; border-color: #C2410C; }
+    .fbtn[data-value="boulangerie"].active { background: #B45309; border-color: #B45309; }
+    .fbtn[data-value="sortie"].active      { background: #0891B2; border-color: #0891B2; }
+
+    .res-count {
+      margin-left: auto;
+      font-weight: 800; font-size: 0.72rem;
+      color: #9CA3AF;
+    }
+
+    /* Place cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+      gap: 1.2rem;
+    }
+
+    /* ── PLACE CARD ── */
+    .pcard {
+      background: white;
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 3px solid var(--dark);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+      animation: cardIn 0.35s ease backwards;
+    }
+    .pcard:hover {
+      transform: translateY(-5px) rotate(0.3deg);
+      box-shadow: 0 9px 0 rgba(0,0,0,0.14);
+    }
+
+    /* colored top strip per type */
+    .pcard[data-type="café"]        { border-top: 6px solid #92400E; }
+    .pcard[data-type="restaurant"]  { border-top: 6px solid #991B1B; }
+    .pcard[data-type="bar"]         { border-top: 6px solid #1E3A8A; }
+    .pcard[data-type="pâtisserie"]  { border-top: 6px solid #9D174D; }
+    .pcard[data-type="pizzeria"]    { border-top: 6px solid #C2410C; }
+    .pcard[data-type="boulangerie"] { border-top: 6px solid #B45309; }
+    .pcard[data-type="sortie"]      { border-top: 6px solid #0891B2; }
+
+    .pcard-head {
+      padding: 1.1rem 1.15rem 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      position: relative;
+    }
+
+    .picon {
+      width: 50px; height: 50px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.45rem;
+      flex-shrink: 0;
+      border: 2px solid rgba(0,0,0,0.06);
+    }
+    .ic-cafe        { background: #FEF3C7; }
+    .ic-restaurant  { background: #FEE2E2; }
+    .ic-bar         { background: #DBEAFE; }
+    .ic-patisserie  { background: #FCE7F3; }
+    .ic-pizzeria    { background: #FFEDD5; }
+    .ic-boulangerie { background: #FDE68A; }
+    .ic-sortie      { background: #CFFAFE; }
+
+    .pcard-info { flex: 1; min-width: 0; }
+    .pcard-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.12rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 0.32rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pmeta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+
+    .cpill {
+      font-size: 0.57rem; font-weight: 800;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.18rem 0.5rem;
+      border-radius: 100px;
+      border: 1.5px solid;
+    }
+    .cp-milan { background:#EDE9FE; color:#4C1D95; border-color:#C4B5FD; }
+    .cp-paris { background:#FEE2E2; color:#7F1D1D; border-color:#FCA5A5; }
+    .cp-lyon  { background:#FEF3C7; color:#78350F; border-color:#FDE68A; }
+
+    .tpill { font-size: 0.58rem; font-weight: 700; color: #9CA3AF; }
+
+    /* badge */
+    .pbadge {
+      position: absolute;
+      top: 0.8rem; right: 0.8rem;
+      font-size: 0.56rem; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 100px;
+    }
+    .bm { background: #FF6B35; color: white; }
+    .bf { background: #F72585; color: white; }
+    .bg { background: #2DC653; color: white; }
+
+    .pcard-body {
+      padding: 0 1.15rem 0.9rem;
+      flex: 1;
+    }
+    .pdesc {
+      font-size: 0.84rem;
+      font-weight: 600;
+      font-style: italic;
+      color: #4B5563;
+      line-height: 1.58;
+      margin-bottom: 0.7rem;
+    }
+    .ptags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .ptag {
+      font-size: 0.6rem; font-weight: 700;
+      background: #F3F4F6; color: #6B7280;
+      padding: 0.18rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .pcard-foot {
+      padding: 0.75rem 1.15rem;
+      border-top: 2px solid #F3F4F6;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stars { font-size: 0.72rem; flex-shrink: 0; }
+    .pprice {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.9rem; font-weight: 600;
+      color: #059669; flex-shrink: 0;
+    }
+    .paddr {
+      flex: 1; font-size: 0.63rem; font-weight: 600;
+      color: #9CA3AF;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .btn-go {
+      display: flex; align-items: center;
+      padding: 0.38rem 0.72rem;
+      background: var(--dark); color: white;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800; font-size: 0.62rem;
+      border-radius: 8px; text-decoration: none;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .btn-go:hover { background: #333; transform: scale(0.96); }
+
+    .no-res {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 4rem;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem; color: #9CA3AF;
+      display: none;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      background: var(--dark);
+      padding: 3.5rem 2rem;
+      text-align: center;
+    }
+    .ft-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.9rem; font-weight: 700;
+      color: var(--yellow); margin-bottom: 0.4rem;
+    }
+    .ft-sub {
+      font-size: 0.85rem; font-weight: 600;
+      color: rgba(255,255,255,0.35); margin-bottom: 1.75rem;
+    }
+    .ft-links { display: flex; justify-content: center; gap: 1.75rem; flex-wrap: wrap; }
+    .ft-link {
+      color: rgba(255,255,255,0.45); text-decoration: none;
+      font-weight: 700; font-size: 0.8rem; transition: color 0.2s;
+    }
+    .ft-link:hover { color: var(--yellow); }
+
+    /* ── ANIMATIONS ───────────────────────────────────── */
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.75) translateY(12px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(8px); }
+    }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .rd1 { transition-delay: 0.1s; }
+    .rd2 { transition-delay: 0.2s; }
+    .rd3 { transition-delay: 0.3s; }
+
+    /* ── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 880px) {
+      .cities-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 580px) {
+      .cities-grid { grid-template-columns: 1fr; }
+      .filters-bar { flex-direction: column; align-items: flex-start; }
+      .fg + .fg { padding-left: 0; border-left: none; border-top: 2px solid #F3F4F6; padding-top: 0.6rem; width: 100%; }
+      .res-count { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ╔═══════════════════════════════╗ -->
+<!-- ║  HERO                         ║ -->
+<!-- ╚═══════════════════════════════╝ -->
+<section class="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">⭐ La sélection ultime</div>
+    <h1>Le Guide<span class="accent">Jultime 🍕</span></h1>
+    <div class="hero-cities">
+      <span class="cdot mil"><span class="d"></span>Milan</span>
+      <span class="hero-sep">·</span>
+      <span class="cdot par"><span class="d"></span>Paris</span>
+      <span class="hero-sep">·</span>
+      <span class="cdot lyo"><span class="d"></span>Lyon</span>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-n" id="stat-total">—</div>
+        <div class="hstat-l">adresses</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-n">3</div>
+        <div class="hstat-l">villes</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-n">5</div>
+        <div class="hstat-l">catégories</div>
+      </div>
+    </div>
+    <a href="#places" class="hero-cta">Explorer les adresses ↓</a>
+  </div>
+  <div class="scroll-arrow">↓</div>
+</section>
+
+<!-- ╔═══════════════════════════════╗ -->
+<!-- ║  CITIES                       ║ -->
+<!-- ╚═══════════════════════════════╝ -->
+<div class="section">
+  <div class="sec-head reveal">
+    <h2>Choisir ta ville 🗺️</h2>
+    <p>Clique sur 🗺️ pour afficher la carte, ou accède directement à la liste</p>
+  </div>
+  <div class="cities-grid">
+
+    <!-- MILAN -->
+    <div class="ccard ccard-milan reveal rd1">
+      <div class="ccard-top">
+        <div class="ccard-badge" id="count-milan">— adresses</div>
+        <div class="ccard-emoji">🏛️</div>
+        <div class="ccard-name">Milano</div>
+        <div class="ccard-sub">Italie · Lombardie</div>
+      </div>
+      <div class="ccard-bottom">
+        <a href="https://maps.app.goo.gl/rNaBGuQDPoEfKsUU9" target="_blank" rel="noopener" class="btn-list">📍 Ma liste Google Maps</a>
+        <button class="btn-mapico" id="btn-milan" onclick="toggleMap('milan')" title="Voir la carte">🗺️</button>
+      </div>
+      <div class="map-panel" id="map-milan">
+        <div id="lmap-milan" style="height:300px;width:100%;"></div>
+      </div>
+    </div>
+
+    <!-- PARIS -->
+    <div class="ccard ccard-paris reveal rd2">
+      <div class="ccard-top">
+        <div class="ccard-badge" id="count-paris">— adresses</div>
+        <div class="ccard-emoji">🗼</div>
+        <div class="ccard-name">Paris</div>
+        <div class="ccard-sub">France · Île-de-France</div>
+      </div>
+      <div class="ccard-bottom">
+        <a href="https://maps.app.goo.gl/zFtqYE989gzZwXrP6" target="_blank" rel="noopener" class="btn-list">📍 Ma liste Google Maps</a>
+        <button class="btn-mapico" id="btn-paris" onclick="toggleMap('paris')" title="Voir la carte">🗺️</button>
+      </div>
+      <div class="map-panel" id="map-paris">
+        <div id="lmap-paris" style="height:300px;width:100%;"></div>
+      </div>
+    </div>
+
+    <!-- LYON -->
+    <div class="ccard ccard-lyon reveal rd3">
+      <div class="ccard-top">
+        <div class="ccard-badge" id="count-lyon">— adresses</div>
+        <div class="ccard-emoji">🦁</div>
+        <div class="ccard-name">Lyon</div>
+        <div class="ccard-sub">France · Auvergne-Rhône-Alpes</div>
+      </div>
+      <div class="ccard-bottom">
+        <a href="https://maps.app.goo.gl/tLdPsYxhZWzX7sLAA" target="_blank" rel="noopener" class="btn-list">📍 Ma liste Google Maps</a>
+        <button class="btn-mapico" id="btn-lyon" onclick="toggleMap('lyon')" title="Voir la carte">🗺️</button>
+      </div>
+      <div class="map-panel" id="map-lyon">
+        <div id="lmap-lyon" style="height:300px;width:100%;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ╔═══════════════════════════════╗ -->
+<!-- ║  PLACES                       ║ -->
+<!-- ╚═══════════════════════════════╝ -->
+<div id="places" class="section places-section">
+  <div class="sec-head reveal">
+    <h2>Mes coups de cœur ❤️</h2>
+    <p>Filtre par ville, type ou budget — et pars à l'aventure</p>
+  </div>
+
+  <div class="filters-bar reveal">
+    <div class="fg">
+      <span class="fg-lbl">Ville</span>
+      <button class="fbtn active" data-filter="city" data-value="all">Toutes</button>
+      <button class="fbtn" data-filter="city" data-value="milan">🏛️ Milan</button>
+      <button class="fbtn" data-filter="city" data-value="paris">🗼 Paris</button>
+      <button class="fbtn" data-filter="city" data-value="lyon">🦁 Lyon</button>
+    </div>
+    <div class="fg">
+      <span class="fg-lbl">Type</span>
+      <button class="fbtn active" data-filter="type" data-value="all">Tous</button>
+      <button class="fbtn" data-filter="type" data-value="café">☕ Café</button>
+      <button class="fbtn" data-filter="type" data-value="restaurant">🍽️ Resto</button>
+      <button class="fbtn" data-filter="type" data-value="bar">🍸 Bar</button>
+      <button class="fbtn" data-filter="type" data-value="pâtisserie">🥐 Pâtisserie</button>
+      <button class="fbtn" data-filter="type" data-value="pizzeria">🍕 Pizzeria</button>
+      <button class="fbtn" data-filter="type" data-value="boulangerie">🍞 Boulangerie</button>
+      <button class="fbtn" data-filter="type" data-value="sortie">🏛️ Sortie</button>
+    </div>
+    <div class="fg">
+      <span class="fg-lbl">Budget</span>
+      <button class="fbtn active" data-filter="price" data-value="all">Tous</button>
+      <button class="fbtn" data-filter="price" data-value="€">€</button>
+      <button class="fbtn" data-filter="price" data-value="€€">€€</button>
+      <button class="fbtn" data-filter="price" data-value="€€€">€€€</button>
+    </div>
+    <span class="res-count" id="res-count"></span>
+  </div>
+
+  <div class="cards-grid" id="cards-grid">
+    <p class="no-res" id="no-res">😢 Aucune adresse pour ces filtres...</p>
+  </div>
+</div>
+
+<!-- ╔═══════════════════════════════╗ -->
+<!-- ║  FOOTER                       ║ -->
+<!-- ╚═══════════════════════════════╝ -->
+<footer>
+  <div class="ft-title">Le Guide Jultime 🍕</div>
+  <p class="ft-sub">Milan · Paris · Lyon — mes adresses du cœur</p>
+  <div class="ft-links">
+    <a href="https://maps.app.goo.gl/rNaBGuQDPoEfKsUU9" target="_blank" rel="noopener" class="ft-link">📍 Liste Milan</a>
+    <a href="https://maps.app.goo.gl/zFtqYE989gzZwXrP6" target="_blank" rel="noopener" class="ft-link">📍 Liste Paris</a>
+    <a href="https://maps.app.goo.gl/tLdPsYxhZWzX7sLAA" target="_blank" rel="noopener" class="ft-link">📍 Liste Lyon</a>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  HERO BG PATTERN
+// ══════════════════════════════════════════════════════
+const emojis = ['🥐','☕','🍕','🧁','🍮','🫖','🍰','🧇','🥐','☕'];
+document.getElementById('hero-bg').textContent = (emojis.join(' ') + '  ').repeat(100);
+
+// ══════════════════════════════════════════════════════
+//  PLACES DATA — listes complètes Google Maps de Jules
+//  Milan 52 · Paris 51 · Lyon 39 = 142 adresses
+//  (coordonnées GPS Avis.json pour les lieux visités)
+// ══════════════════════════════════════════════════════
+let places = [
+
+  // ── MILAN (52) ─────────────────────────────────────
+  { city:"milan", name:"SISU.", type:"café", price:"€", rating:5,
+    address:"Via Gaudenzio Ferrari, 1, 20123 Milano", lat:45.4562, lng:9.1750,
+    desc:"Petit dej / brunch sexy en plein Navigli. Le spot pour démarrer la journée avec style.",
+    tags:["brunch","petit dej","navigli"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=SISU+Milano", icon:"☕", ic:"ic-cafe" },
+
+  { city:"milan", name:"Gelateria Momenti", type:"pâtisserie", price:"€€", rating:5,
+    address:"Via California, 1, 20144 Milano", lat:45.4592, lng:9.1606,
+    desc:"Gelato artisanal dans la Zona Navigli. Textures crémeuses et parfums originaux qui changent tout.",
+    tags:["gelato","artisanal","navigli"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x17a7989f48284686", icon:"🍦", ic:"ic-patisserie" },
+  { city:"milan", name:"Spun Tiramisu", type:"pâtisserie", price:"€", rating:5,
+    address:"Via Victor Hugo, 3, 20123 Milano", lat:45.4637, lng:9.1872,
+    desc:"Le tiramisu érigé en art. Déclinaisons créatives dans un cadre compact en plein centre-ville.",
+    tags:["tiramisu","dessert","centre"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x74977a30f6e5942e", icon:"🍮", ic:"ic-patisserie" },
+  { city:"milan", name:"RONCAGLIA33 dolce pane e vino", type:"pâtisserie", price:"€€", rating:5,
+    address:"Via Roncaglia, 33, 20146 Milano", lat:45.4513, lng:9.1547,
+    desc:"Pâtisserie-cave à vins cachée dans le quartier Tortona. Douceurs et naturels, combo parfait.",
+    tags:["pâtisserie","vins","tortona"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=RONCAGLIA33+Milano", icon:"🥐", ic:"ic-patisserie" },
+  { city:"milan", name:"GnomoGelato", type:"pâtisserie", price:"€€", rating:5,
+    address:"Corso di Porta Ticinese, 70, 20143 Milano", lat:45.4568, lng:9.1797,
+    desc:"Gelato créatif au bord du Naviglio. Parfums qui changent, produits locaux.",
+    tags:["gelato","navigli","créatif"], badge:null,
+    mapsLink:"https://maps.google.com/?q=GnomoGelato+Milano", icon:"🍦", ic:"ic-patisserie" },
+  { city:"milan", name:"Gelateria LAB", type:"pâtisserie", price:"€€", rating:5,
+    address:"Via Savona, 19, 20144 Milano", lat:45.4543, lng:9.1638,
+    desc:"Gelateria artisanale dans le quartier Tortona. Parfums originaux et textures remarquables.",
+    tags:["gelato","artisanal","tortona"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Gelateria+LAB+Milano", icon:"🍦", ic:"ic-patisserie" },
+  { city:"milan", name:"Luca - Il gelato di compagnia", type:"pâtisserie", price:"€€", rating:5,
+    address:"Via Savona, 40, 20144 Milano", lat:45.4544, lng:9.1637,
+    desc:"Gelato généreux et convivial dans le Tortona. Une glace à partager entre amis.",
+    tags:["gelato","convivial","tortona"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Luca+gelato+compagnia+Milano", icon:"🍦", ic:"ic-patisserie" },
+  { city:"milan", name:"Malìa Milano City Life", type:"pâtisserie", price:"€€", rating:4,
+    address:"Via Spinola, 2, 20149 Milano", lat:45.4697, lng:9.1552,
+    desc:"Pâtisserie napolitaine élégante au City Life. Sfogliatelle et babà d'exception.",
+    tags:["napolitain","pâtisserie","city life"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Malìa+Milano+City+Life", icon:"🥐", ic:"ic-patisserie" },
+  { city:"milan", name:"Alessandro Servida Pasticceria", type:"pâtisserie", price:"€€", rating:4,
+    address:"Viale Col di Lana, 10, 20136 Milano", lat:45.4483, lng:9.1893,
+    desc:"Pâtisserie élégante au bord des Navigli. Un peu de monde aux heures de pointe mais vaut le détour.",
+    tags:["pâtisserie","navigli","classique"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Alessandro+Servida+Pasticceria+Milano", icon:"🥐", ic:"ic-patisserie" },
+  { city:"milan", name:"Pavé", type:"pâtisserie", price:"€", rating:4,
+    address:"Via Felice Casati, 27, 20124 Milano", lat:45.4783, lng:9.2065,
+    desc:"Café-pâtisserie branché de l'Isola. Bons retours sur les gâteaux, à tester.",
+    tags:["café","pâtisserie","isola"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pavé+café+Milano", icon:"🥐", ic:"ic-patisserie" },
+  { city:"milan", name:"Bar Pasticceria Moriondo", type:"pâtisserie", price:"€", rating:4,
+    address:"Via Torino, 3, 20123 Milano", lat:45.4633, lng:9.1855,
+    desc:"Pâtisserie très à l'ancienne mais typiquement milanaise. Un voyage dans le temps.",
+    tags:["tradition","old school","centre"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Bar+Pasticceria+Moriondo+Milano", icon:"🥐", ic:"ic-patisserie" },
+  { city:"milan", name:"Aroma Napoletano", type:"café", price:"€", rating:4,
+    address:"Via Durini, 22, 20122 Milano", lat:45.4659, lng:9.1978,
+    desc:"Un peu touristique mais le croissant napolitain (cornetto) est vraiment gourmand.",
+    tags:["napolitain","cornetto","centre"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Aroma+Napoletano+Milano", icon:"☕", ic:"ic-cafe" },
+  { city:"milan", name:"Loste Café", type:"café", price:"€", rating:4,
+    address:"Piazza della Repubblica, 12, 20124 Milano", lat:45.4808, lng:9.2017,
+    desc:"Café populaire à la Repubblica. Beaucoup de monde mais pratique avant de prendre le train.",
+    tags:["café","centrale","populaire"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Loste+Café+Milano", icon:"☕", ic:"ic-cafe" },
+  { city:"milan", name:"Pizzeria Errico Porzio", type:"pizzeria", price:"€", rating:5,
+    address:"Via Andrea Solari, 34, 20144 Milano", lat:45.4548, lng:9.1609,
+    desc:"La pizza napolitaine authentique débarquée à Milan. Alveolatura parfaite, file garantie, qualité aussi.",
+    tags:["napolitaine","authentique","populaire"], badge:"must",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xc57a083318552832", icon:"🍕", ic:"ic-pizzeria" },
+  { city:"milan", name:"Da Zero", type:"pizzeria", price:"€€", rating:5,
+    address:"Via dell'Orso, 4, 20121 Milano", lat:45.4692, lng:9.1875,
+    desc:"Très bonne pizza avec des ingrédients top. Choix restreint mais chaque pizza est une réussite.",
+    tags:["pizza","qualité","brera"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x14950458bcc9bdfb", icon:"🍕", ic:"ic-pizzeria" },
+  { city:"milan", name:"Pizzeria da Mammà", type:"pizzeria", price:"€€", rating:5,
+    address:"Ripa di Porta Ticinese, 11, 20143 Milano", lat:45.4562, lng:9.1720,
+    desc:"Ma pizza préférée à Milan. Resto un peu claqué (style dark kitchen) mais la pizza est incroyable.",
+    tags:["pizza","napolitaine","navigli"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=Pizzeria+da+Mammà+Milano", icon:"🍕", ic:"ic-pizzeria" },
+  { city:"milan", name:"Pizzeria Vincenzo Capuano Moscova", type:"pizzeria", price:"€€", rating:4,
+    address:"Corso di Porta Nuova, 12, 20121 Milano", lat:45.4788, lng:9.1910,
+    desc:"Très bonne pizza napolitaine à Moscova. Plusieurs adresses dans la ville.",
+    tags:["napolitaine","moscova","plusieurs adresses"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pizzeria+Vincenzo+Capuano+Moscova+Milano", icon:"🍕", ic:"ic-pizzeria" },
+  { city:"milan", name:"Don Aniello", type:"restaurant", price:"€€", rating:5,
+    address:"Alzaia Naviglio Grande, 40, 20144 Milano", lat:45.4514, lng:9.1723,
+    desc:"Cuisine napolitaine au bord du Naviglio Grande. L'adresse idéale pour une soirée sur les canaux.",
+    tags:["napolitain","navigli","soirée"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x17367d6fe24372fd", icon:"🍝", ic:"ic-restaurant" },
+  { city:"milan", name:"Le Striatelle di Nonna Mafalda", type:"restaurant", price:"€€", rating:5,
+    address:"Via Vigevano, 11, 20144 Milano", lat:45.4527, lng:9.1745,
+    desc:"Un de mes restos préférés à Milan. Les pâtes fraîches maison sont excellentes, les striatelle al ragù indispensables.",
+    tags:["pâtes fraîches","navigli","fait maison"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xdfbe54ae9b461c35", icon:"🍝", ic:"ic-restaurant" },
+  { city:"milan", name:"Bottega Saffi", type:"restaurant", price:"€€", rating:5,
+    address:"Via Aurelio Saffi, 2, 20123 Milano", lat:45.4692, lng:9.1720,
+    desc:"Adresse de quartier sans chichi avec une cuisine soignée. Déjeuner sans attente, 20-30€.",
+    tags:["déjeuner","trattoria","quartier"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xdb4fe2f6d3130602", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"milan", name:"Holy Burger & Cicchetti", type:"restaurant", price:"€€", rating:5,
+    address:"Via Monferrato, 6, 20144 Milano", lat:45.4658, lng:9.1568,
+    desc:"Burgers créatifs et cicchetti italiens dans le quartier de Porta Genova. Fusion qui fonctionne vraiment.",
+    tags:["burger","cicchetti","fusion"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x9f7ff4f8d1a7fbb7", icon:"🍔", ic:"ic-restaurant" },
+  { city:"milan", name:"Il Marchese Milano", type:"restaurant", price:"€€", rating:4,
+    address:"Via Santa Maria alla Porta, 11, 20123 Milano", lat:45.4655, lng:9.1832,
+    desc:"Restaurant italien élégant près du Castello. Cuisine de qualité dans un décor soigné.",
+    tags:["italien","élégant","castello"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Il+Marchese+Milano", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"milan", name:"SlowSud Porta Genova Tortona", type:"restaurant", price:"€€", rating:5,
+    address:"Via Tortona, 24, 20144 Milano", lat:45.4557, lng:9.1630,
+    desc:"Super resto sicilien à Porta Genova. Bien avec TheFork pour des promos intéressantes.",
+    tags:["sicilien","tortona","promos"], badge:null,
+    mapsLink:"https://maps.google.com/?q=SlowSud+Porta+Genova+Milano", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"milan", name:"Like Mike — Trattoria Moderna", type:"restaurant", price:"€€", rating:4,
+    address:"Via Vigevano, 23, 20144 Milano", lat:45.4533, lng:9.1741,
+    desc:"Trattoria moderne sur le Naviglio. Cuisine italienne revisitée dans un cadre décontracté.",
+    tags:["trattoria","moderne","navigli"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Like+Mike+Trattoria+Moderna+Milano", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"milan", name:"Pasta d'Autore", type:"restaurant", price:"€€", rating:5,
+    address:"Via Panfilo Castaldi, 16, 20124 Milano", lat:45.4768, lng:9.2037,
+    desc:"Un peu touristique mais vraiment très bon. Les pâtes maison valent le détour, centrale.",
+    tags:["pâtes","centre","fait maison"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pasta+d'Autore+Milano", icon:"🍝", ic:"ic-restaurant" },
+  { city:"milan", name:"All'Antico Vinaio", type:"restaurant", price:"€€", rating:4,
+    address:"Via Meravigli, 2, 20123 Milano", lat:45.4655, lng:9.1836,
+    desc:"Sandwichs incroyables. La célèbre enseigne florentine débarquée à Milan — plusieurs adresses en ville.",
+    tags:["sandwich","incontournable","plusieurs adresses"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=All'Antico+Vinaio+Milano", icon:"🥪", ic:"ic-restaurant" },
+  { city:"milan", name:"Wadi Rum Milano", type:"restaurant", price:"€€€", rating:4,
+    address:"Via Settala, 18, 20124 Milano", lat:45.4777, lng:9.2068,
+    desc:"Super resto libanais. Mezze généreux et ambiance chaleureuse dans le quartier Centrale.",
+    tags:["libanais","mezze","centrale"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Wadi+Rum+Milano", icon:"🫕", ic:"ic-restaurant" },
+  { city:"milan", name:"RAITO FANTASTIC FUSION", type:"restaurant", price:"€€€", rating:5,
+    address:"Via Paolo Sarpi, 30, 20154 Milano", lat:45.4785, lng:9.1768,
+    desc:"Sushis à volonté incroyable. La meilleure table de sushis all-you-can-eat de Milan.",
+    tags:["sushis","volonté","sarpi"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=RAITO+FANTASTIC+FUSION+Milano", icon:"🍣", ic:"ic-restaurant" },
+  { city:"milan", name:"Ristorante Fonderie Milanesi", type:"restaurant", price:"€€", rating:4,
+    address:"Via Tortona, 35, 20144 Milano", lat:45.4557, lng:9.1625,
+    desc:"Aperitivo à volonté et terrasse/jardin stylé dans l'ancienne fonderie. Incontournable en été.",
+    tags:["aperitivo","jardin","tortona"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Fonderie+Milanesi+Milano", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"milan", name:"Trapizzino Milano", type:"restaurant", price:"€€", rating:5,
+    address:"Via Marghera, 1, 20149 Milano", lat:45.4677, lng:9.1579,
+    desc:"Sorte de sandwichs très sympas — pocket pizza remplie de ragù ou cacio e pepe. Plusieurs adresses.",
+    tags:["sandwich","street food","plusieurs adresses"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Trapizzino+Milano", icon:"🥙", ic:"ic-restaurant" },
+  { city:"milan", name:"DAVET Turkish Kebap Pizzeria", type:"restaurant", price:"€", rating:5,
+    address:"Piazzale Stazione Genova, 2, 20144 Milano", lat:45.4538, lng:9.1701,
+    desc:"La référence kebab de Porta Genova. Généreux, rapide, et délicieusement bien fait.",
+    tags:["kebab","rapide","porta genova"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xac9ec7fd6783073f", icon:"🥙", ic:"ic-restaurant" },
+  { city:"milan", name:"Turkish Kebab Pizza", type:"restaurant", price:"€", rating:5,
+    address:"Via Caminadella, 5, 20123 Milano", lat:45.4593, lng:9.1778,
+    desc:"Autre valeur sûre pour un kebab en centre-ville, proche de Porta Ticinese.",
+    tags:["kebab","ticinese","rapide"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xd2fdb8b20599f48d", icon:"🥙", ic:"ic-restaurant" },
+  { city:"milan", name:"SIGNOR LIEVITO", type:"boulangerie", price:"€", rating:4,
+    address:"Via Felice Casati, 3, 20124 Milano", lat:45.4783, lng:9.2045,
+    desc:"Boulangerie artisanale dans l'Isola. Pains au levain et viennoiseries de qualité.",
+    tags:["boulangerie","levain","isola"], badge:null,
+    mapsLink:"https://maps.google.com/?q=SIGNOR+LIEVITO+Milano", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"milan", name:"Piccolo Pan", type:"boulangerie", price:"€", rating:5,
+    address:"Via Vigevano, 5, 20144 Milano", lat:45.4531, lng:9.1753,
+    desc:"À emporter uniquement mais super bon. Pain et viennoiseries artisanaux sur le Naviglio.",
+    tags:["boulangerie","à emporter","navigli"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Piccolo+Pan+Milano", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"milan", name:"Frida", type:"bar", price:"€€", rating:5,
+    address:"Via Antonio Pollaiuolo, 3, 20159 Milano", lat:45.4887, lng:9.1873,
+    desc:"Super bar très stylé et jeune dans le quartier Isola. Jardin intérieur — l'aperitivo estival par excellence.",
+    tags:["aperitivo","isola","jardin"], badge:"fav",
+    mapsLink:"http://maps.google.com/?cid=12403723593705774842", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Morna", type:"bar", price:"€€", rating:4,
+    address:"Via Vigevano, 17, 20144 Milano", lat:45.4531, lng:9.1742,
+    desc:"Bar à cocktails ambiance Navigli. Clientèle jeune et mixologie soignée.",
+    tags:["cocktails","navigli","soir"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Morna+bar+Milano", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Colibrì", type:"bar", price:"€€", rating:4,
+    address:"Ripa di Porta Ticinese, 55, 20143 Milano", lat:45.4573, lng:9.1742,
+    desc:"Bar sympa le long du Naviglio Pavese. Terrasse agréable en été.",
+    tags:["navigli","terrasse","aperitivo"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Colibrì+bar+Milano", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Flow Milano", type:"bar", price:"€€", rating:4,
+    address:"Corso Como, 8, 20154 Milano", lat:45.4802, lng:9.1885,
+    desc:"Bar tendance de la Zona Garibaldi. Clientèle hype, cocktails bien exécutés.",
+    tags:["tendance","garibaldi","cocktails"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Flow+Milano+bar", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"LibrOsteria", type:"bar", price:"€€", rating:4,
+    address:"Via Argelati, 35, 20143 Milano", lat:45.4541, lng:9.1709,
+    desc:"Librairie-bar-restaurant hybride sur le Naviglio. Concept unique pour les amateurs de livres et de bons vins.",
+    tags:["bar","livres","navigli"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=LibrOsteria+Milano", icon:"🍷", ic:"ic-bar" },
+  { city:"milan", name:"WOLF milano", type:"bar", price:"€€", rating:4,
+    address:"Via Savona, 50, 20144 Milano", lat:45.4547, lng:9.1635,
+    desc:"Bar design dans le Tortona. Ambiance créative et cocktails originaux.",
+    tags:["design","tortona","cocktails"], badge:null,
+    mapsLink:"https://maps.google.com/?q=WOLF+Milano+bar", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Lom Dopolavoro", type:"bar", price:"€€", rating:4,
+    address:"Ripa di Porta Ticinese, 65, 20143 Milano", lat:45.4541, lng:9.1705,
+    desc:"Bar et cuisine sur le Naviglio, super pour un date. Intérieur et extérieur tops.",
+    tags:["date","navigli","terrasse"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=Lom+Dopolavoro+Milano", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Foresta Woodbar", type:"bar", price:"€€", rating:4,
+    address:"Via Argelati, 3, 20143 Milano", lat:45.4548, lng:9.1744,
+    desc:"Aperitivo à volonté dans un bar à l'ambiance boisée. Idéal après 18h.",
+    tags:["aperitivo","volonté","navigli"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Foresta+Woodbar+Milano", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Deus Cafe Isola", type:"bar", price:"€€", rating:4,
+    address:"Via Tofane, 1, 20159 Milano", lat:45.4863, lng:9.1874,
+    desc:"Super bar surtout la terrasse. Concept moto-café avec espace expo, resto et jardin.",
+    tags:["terrasse","isola","concept"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Deus+Cafe+Isola+Milano", icon:"🍸", ic:"ic-bar" },
+  { city:"milan", name:"Sidewalk Kitchens", type:"bar", price:"€€", rating:4,
+    address:"Via Vigevano, 8, 20144 Milano", lat:45.4532, lng:9.1748,
+    desc:"Plein de choses dont bar à vins natures, burgers et petit déj. Un endroit polyvalent sur le Naviglio.",
+    tags:["vins natures","brunch","navigli"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Sidewalk+Kitchens+Milano", icon:"🍷", ic:"ic-bar" },
+  { city:"milan", name:"BASE Milano", type:"sortie", price:"€€", rating:4,
+    address:"Via Bergognone, 34, 20144 Milano", lat:45.4542, lng:9.1630,
+    desc:"Ancien espace industriel reconverti en centre culturel. Expos, concerts, food — l'épicentre de la scène créative milanaise.",
+    tags:["culturel","expos","tortona"], badge:null,
+    mapsLink:"https://maps.google.com/?q=BASE+Milano", icon:"🏛️", ic:"ic-sortie" },
+  { city:"milan", name:"Mudec", type:"sortie", price:"€€", rating:4,
+    address:"Via Tortona, 56, 20144 Milano", lat:45.4540, lng:9.1604,
+    desc:"Musée des cultures à Tortona. Architecture spectaculaire de David Chipperfield, expos ethnographiques fascinantes.",
+    tags:["musée","cultures","tortona"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Mudec+Milano", icon:"🖼️", ic:"ic-sortie" },
+  { city:"milan", name:"Cascina Cuccagna", type:"sortie", price:"€€", rating:4,
+    address:"Via Muratori, 10, 20135 Milano", lat:45.4516, lng:9.1985,
+    desc:"Ancienne ferme réhabilitée en bar hype avec jardin. Un coin de campagne au cœur de la ville.",
+    tags:["jardin","bar","hype"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Cascina+Cuccagna+Milano", icon:"🌿", ic:"ic-sortie" },
+  { city:"milan", name:"Parco Sempione", type:"sortie", price:"€", rating:5,
+    address:"Viale Alemagna, 6, 20121 Milano", lat:45.4731, lng:9.1718,
+    desc:"Le grand poumon vert de Milan. Pique-nique, jogging, Torre Branca — incontournable par beau temps.",
+    tags:["parc","nature","détente"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Parco+Sempione+Milano", icon:"🌿", ic:"ic-sortie" },
+  { city:"milan", name:"Cimitero Monumentale", type:"sortie", price:"€", rating:5,
+    address:"Piazzale Cimitero Monumentale, 20154 Milano", lat:45.4890, lng:9.1727,
+    desc:"Un cimetière qui est aussi un musée à ciel ouvert. Sculptures et mausolées monumentaux — fascinant.",
+    tags:["insolite","sculptures","patrimoine"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Cimitero+Monumentale+Milano", icon:"🏛️", ic:"ic-sortie" },
+  { city:"milan", name:"Pinacoteca di Brera", type:"sortie", price:"€€", rating:5,
+    address:"Via Brera, 28, 20121 Milano", lat:45.4717, lng:9.1884,
+    desc:"Le musée d'art le plus important de Milan. Raphaël, Caravage, Mantegna — une collection de rêve.",
+    tags:["musée","art","incontournable"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=Pinacoteca+di+Brera+Milano", icon:"🖼️", ic:"ic-sortie" },
+  { city:"milan", name:"Eataly Milano Smeraldo", type:"sortie", price:"€€", rating:4,
+    address:"Piazza Venticinque Aprile, 10, 20121 Milano", lat:45.4808, lng:9.1880,
+    desc:"Supermarché et restaurant Eataly dans le théâtre Smeraldo. Le même qu'à Paris mais dans un beau bâtiment.",
+    tags:["épicerie","italien","garibaldi"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Eataly+Milano+Smeraldo", icon:"🛒", ic:"ic-sortie" },
+  { city:"milan", name:"Mercato Centrale Milano", type:"sortie", price:"€€", rating:4,
+    address:"Via Giovanni Battista Sammartini, 2, 20125 Milano", lat:45.4866, lng:9.2034,
+    desc:"Tout y est dans un lieu stylé. Marché alimentaire multi-étages près de la Stazione Centrale.",
+    tags:["marché","food hall","centrale"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Mercato+Centrale+Milano", icon:"🛒", ic:"ic-sortie" },
+
+  // ── PARIS (51) ─────────────────────────────────────
+  { city:"paris", name:"Brasserie des Prés", type:"restaurant", price:"€€", rating:5,
+    address:"6 Cours du Commerce Saint-André, 75006", lat:48.8529, lng:2.3392,
+    desc:"Brasserie élégante dans une ruelle historique de Saint-Germain. Cuisine de brasserie soignée.",
+    tags:["brasserie","saint-germain","historique"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xa9c3307ddd2ab577", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Brasserie Rosie", type:"restaurant", price:"€€", rating:5,
+    address:"53 Rue du Faubourg Saint-Antoine, 75011", lat:48.8522, lng:2.3732,
+    desc:"La brasserie de quartier du Faubourg Saint-Antoine. Ambiance chaleureuse et carte qui change.",
+    tags:["brasserie","faubourg","quartier"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xac9e5face0a0c3", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Brasserie Dubillot", type:"restaurant", price:"€€", rating:5,
+    address:"7 Rue Brantôme, 75003", lat:48.8606, lng:2.3533,
+    desc:"Brasserie moderne dans le Marais. Belle carte française, service impeccable.",
+    tags:["brasserie","marais","française"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Brasserie+Dubillot+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Sama Loubnane", type:"restaurant", price:"€€", rating:5,
+    address:"83 Bd Saint-Michel, 75005", lat:48.8455, lng:2.3401,
+    desc:"Le meilleur libanais du Quartier Latin. Houmous maison, mezze généreux, prix imbattables.",
+    tags:["libanais","mezze","quartier latin"], badge:"must",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xa7c1b6c1fa371142", icon:"🫕", ic:"ic-restaurant" },
+  { city:"paris", name:"Presto Fresco", type:"restaurant", price:"€€", rating:5,
+    address:"14 Rue Montmartre, 75001", lat:48.8638, lng:2.3459,
+    desc:"Cuisine italienne fraîche et rapide près des Halles. Parfait pour un déjeuner efficace en centre.",
+    tags:["italien","rapide","centre"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xf3fe5d5b8ebb44f3", icon:"🍝", ic:"ic-restaurant" },
+  { city:"paris", name:"Gruppomimo", type:"restaurant", price:"€€", rating:5,
+    address:"7 Rue Léopold Bellan, 75002", lat:48.8645, lng:2.3476,
+    desc:"Excellente trattoria italienne dans le Sentier. Pâtes fraîches et ambiance animée.",
+    tags:["italien","trattoria","sentier"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=Gruppomimo+Paris", icon:"🍝", ic:"ic-restaurant" },
+  { city:"paris", name:"Il était un square", type:"restaurant", price:"€€", rating:5,
+    address:"2 Rue Gustave Goublier, 75010", lat:48.8701, lng:2.3613,
+    desc:"Burgers incroyables dans le 10e. L'un des meilleurs spots burger de Paris.",
+    tags:["burger","10e","incontournable"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=Il+était+un+square+Burger+Paris", icon:"🍔", ic:"ic-restaurant" },
+  { city:"paris", name:"avec amour - le burger Belleville", type:"restaurant", price:"€€", rating:5,
+    address:"38 Rue des Couronnes, 75020", lat:48.8673, lng:2.3827,
+    desc:"Burgers généreux et faits maison à Belleville. Plusieurs adresses, toujours une valeur sûre.",
+    tags:["burger","belleville","fait maison"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=avec+amour+burger+Belleville+Paris", icon:"🍔", ic:"ic-restaurant" },
+  { city:"paris", name:"PNY GAITÉ", type:"restaurant", price:"€€", rating:5,
+    address:"6 Rue de la Gaîté, 75014", lat:48.8392, lng:2.3230,
+    desc:"La chaîne de burgers parisienne PNY, adresse de la Gaîté. Bons produits et recettes créatives.",
+    tags:["burger","gaîté","14e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=PNY+Gaité+Paris", icon:"🍔", ic:"ic-restaurant" },
+  { city:"paris", name:"La Felicità", type:"restaurant", price:"€€", rating:5,
+    address:"5 Parvis Alan Turing, 75013", lat:48.8305, lng:2.3738,
+    desc:"Immense food hall italien dans la Halle Freyssinet. Pasta, pizza, vins — un monument du 13e.",
+    tags:["italien","food hall","13e"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=La+Felicità+Paris", icon:"🍝", ic:"ic-restaurant" },
+  { city:"paris", name:"Maslow Temple", type:"restaurant", price:"€€", rating:5,
+    address:"33 Rue des Archives, 75003", lat:48.8586, lng:2.3540,
+    desc:"Le meilleur restaurant végétarien de Paris. Cuisine inventive et généreuse, on oublie la viande.",
+    tags:["végétarien","marais","inventif"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=Maslow+Temple+Paris", icon:"🥗", ic:"ic-restaurant" },
+  { city:"paris", name:"Maslow", type:"restaurant", price:"€€", rating:5,
+    address:"42 Rue Sainte-Croix de la Bretonnerie, 75004", lat:48.8567, lng:2.3530,
+    desc:"La version marais de Maslow végétarien. Cuisine du monde 100% plant-based.",
+    tags:["végétarien","marais","world food"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Maslow+restaurant+Paris", icon:"🥗", ic:"ic-restaurant" },
+  { city:"paris", name:"Fellows", type:"restaurant", price:"€€", rating:5,
+    address:"5 Rue du Cardinal Lemoine, 75005", lat:48.8511, lng:2.3514,
+    desc:"Excellent restaurant végétarien du 5e. Carte courte et créative qui change avec les saisons.",
+    tags:["végétarien","5e","créatif"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=Fellows+restaurant+Paris", icon:"🥗", ic:"ic-restaurant" },
+  { city:"paris", name:"BMK Paris-Bamako", type:"restaurant", price:"€€", rating:5,
+    address:"20 Rue Bichat, 75010", lat:48.8714, lng:2.3651,
+    desc:"Restaurant afro-parisien dans le 10e. Cuisine généreuse qui mélange influences françaises et africaines.",
+    tags:["africain","10e","fusion"], badge:null,
+    mapsLink:"https://maps.google.com/?q=BMK+Paris+Bamako", icon:"🥘", ic:"ic-restaurant" },
+  { city:"paris", name:"La Cappadoce", type:"restaurant", price:"€€", rating:5,
+    address:"9 Rue de la Fontaine au Roi, 75011", lat:48.8656, lng:2.3718,
+    desc:"Le meilleur restaurant turc du 11e. Mezze authentiques et grillades parfumées.",
+    tags:["turc","mezze","11e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=La+Cappadoce+Paris", icon:"🫕", ic:"ic-restaurant" },
+  { city:"paris", name:"Öz Maître Kebabier", type:"restaurant", price:"€€", rating:5,
+    address:"69 Bd de la Villette, 75010", lat:48.8746, lng:2.3657,
+    desc:"Le meilleur kebab de Paris selon beaucoup. Döner généreux et viande de qualité.",
+    tags:["kebab","villette","incontournable"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Öz+Maître+Kebabier+Paris", icon:"🥙", ic:"ic-restaurant" },
+  { city:"paris", name:"Les Frères des Batignolles", type:"restaurant", price:"€", rating:4,
+    address:"3 Rue des Batignolles, 75017", lat:48.8833, lng:2.3235,
+    desc:"Kebab de quartier dans les Batignolles. Simple, copieux, rapport qualité-prix imbattable.",
+    tags:["kebab","batignolles","17e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Les+Frères+des+Batignolles+Paris", icon:"🥙", ic:"ic-restaurant" },
+  { city:"paris", name:"Sürpriz — Berliner Kebab", type:"restaurant", price:"€€", rating:5,
+    address:"37 Rue de Bretagne, 75003", lat:48.8625, lng:2.3622,
+    desc:"Berliner kebab à Berlin-sur-Marais. La viande en broche, la sauce blanche, les frites — un voyage.",
+    tags:["berliner kebab","marais","original"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Sürpriz+Berliner+Kebab+Paris", icon:"🥙", ic:"ic-restaurant" },
+  { city:"paris", name:"Kintaro", type:"restaurant", price:"€€", rating:5,
+    address:"24 Rue Saint-Augustin, 75002", lat:48.8697, lng:2.3380,
+    desc:"Classique du ramen parisien. File d'attente presque toujours, mais ça vaut chaque minute.",
+    tags:["ramen","japonais","opéra"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Kintaro+restaurant+Paris", icon:"🍜", ic:"ic-restaurant" },
+  { city:"paris", name:"Mao dumpling bar", type:"restaurant", price:"€€", rating:4,
+    address:"23 Rue des Gravilliers, 75003", lat:48.8625, lng:2.3518,
+    desc:"Bar à dumplings dans le 3e. Raviolis chinois artisanaux dans un cadre décontracté.",
+    tags:["dumplings","chinois","3e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Mao+dumpling+bar+Paris", icon:"🥟", ic:"ic-restaurant" },
+  { city:"paris", name:"Ambassade d'Auvergne", type:"restaurant", price:"€€€", rating:4,
+    address:"22 Rue du Grenier Saint-Lazare, 75003", lat:48.8622, lng:2.3529,
+    desc:"Institution auvergnate dans le Marais depuis des décennies. Aligot, tripoux et saucisse de Toulouse.",
+    tags:["auvergne","tradition","marais"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Ambassade+d'Auvergne+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"B.O.U.L.O.M", type:"restaurant", price:"€€€", rating:4,
+    address:"1 Pl. du Louvre, 75001", lat:48.8612, lng:2.3424,
+    desc:"Boulanger-chef étoilé au Louvre. Cuisine française gastronomique en journée.",
+    tags:["gastronomique","louvre","français"], badge:null,
+    mapsLink:"https://maps.google.com/?q=BOULOM+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Bistro les Artizans", type:"restaurant", price:"€€", rating:4,
+    address:"14 Rue Favart, 75002", lat:48.8701, lng:2.3432,
+    desc:"Bistrot parisien classique dans l'Opéra. Bonne cuisine française sans prétention.",
+    tags:["bistrot","opéra","français"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Bistro+les+Artizans+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"LE GRAND BALLS", type:"restaurant", price:"€€", rating:5,
+    address:"15 Rue des Petites Écuries, 75010", lat:48.8726, lng:2.3503,
+    desc:"Restaurant méditerranéen cool dans le 10e. Grande salle animée, cuisine généreuse.",
+    tags:["méditerranéen","10e","animé"], badge:null,
+    mapsLink:"https://maps.google.com/?q=LE+GRAND+BALLS+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"La Cantine Diderot", type:"restaurant", price:"€€", rating:5,
+    address:"21 Bd Diderot, 75012", lat:48.8479, lng:2.3733,
+    desc:"Cantine conviviale du 12e. Petite carte qui change, produits frais, prix raisonnables.",
+    tags:["cantine","12e","marché"], badge:null,
+    mapsLink:"https://maps.google.com/?q=La+Cantine+Diderot+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Chez Emile Bistro", type:"restaurant", price:"€€", rating:5,
+    address:"19 Rue de l'Arbre Sec, 75001", lat:48.8614, lng:2.3449,
+    desc:"Bistrot discret dans le 1er. Cuisine du marché soignée dans un cadre chaleureux.",
+    tags:["bistrot","1er","marché"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Chez+Emile+Bistro+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"Rôtisserie Segar", type:"restaurant", price:"€€", rating:5,
+    address:"26 Rue du Roi de Sicile, 75004", lat:48.8546, lng:2.3565,
+    desc:"Rôtisserie artisanale dans le Marais. Poulet rôti à la broche, incontournable.",
+    tags:["rôtisserie","poulet","marais"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Rôtisserie+Segar+Paris", icon:"🍗", ic:"ic-restaurant" },
+  { city:"paris", name:"Brique Machine Paris 2", type:"restaurant", price:"€€", rating:5,
+    address:"17 Rue Léopold Bellan, 75002", lat:48.8647, lng:2.3473,
+    desc:"Buffet asiatique moderne dans le Sentier. Choix immense, qualité au rendez-vous.",
+    tags:["buffet","asiatique","sentier"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Brique+Machine+Paris+2", icon:"🍱", ic:"ic-restaurant" },
+  { city:"paris", name:"Oroyona", type:"restaurant", price:"€", rating:4,
+    address:"25 Rue Mouffetard, 75005", lat:48.8437, lng:2.3507,
+    desc:"Crêperie bretonne sur la Mouff. Galettes authentiques à prix doux.",
+    tags:["crêperie","mouffetard","breton"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Oroyona+crêperie+Paris", icon:"🥞", ic:"ic-restaurant" },
+  { city:"paris", name:"Pachuco", type:"restaurant", price:"€€", rating:4,
+    address:"12 Rue Pierre Semard, 75009", lat:48.8793, lng:2.3459,
+    desc:"Cantina mexicaine dans le 9e. Tacos et plats latinos généreux dans une ambiance festive.",
+    tags:["mexicain","tacos","9e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pachuco+Paris", icon:"🌮", ic:"ic-restaurant" },
+  { city:"paris", name:"Alfi", type:"restaurant", price:"€€", rating:4,
+    address:"52 Rue de Turbigo, 75003", lat:48.8638, lng:2.3521,
+    desc:"Restaurant casher dans le 3e. Belle cuisine israélienne et levantine.",
+    tags:["casher","israélien","3e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Alfi+restaurant+Paris", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"paris", name:"L'As du Fallafel", type:"restaurant", price:"€€", rating:4,
+    address:"34 Rue des Rosiers, 75004", lat:48.8563, lng:2.3572,
+    desc:"L'institution du falafel à Paris. Rue des Rosiers, file à toujours, le falafel spécial vaut l'attente.",
+    tags:["falafel","marais","institution"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=L'As+du+Fallafel+Paris", icon:"🧆", ic:"ic-restaurant" },
+  { city:"paris", name:"Chez Alain Miam Miam", type:"restaurant", price:"€€", rating:4,
+    address:"8 Rue des Vieilles Haudriettes, 75003", lat:48.8610, lng:2.3546,
+    desc:"Sandwichs ouverts garnis façon pain-tartine dans le Marais. Original et délicieux.",
+    tags:["sandwich","marais","original"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Chez+Alain+Miam+Miam+Paris", icon:"🥪", ic:"ic-restaurant" },
+  { city:"paris", name:"Ground Control", type:"bar", price:"€€", rating:5,
+    address:"81 Rue du Charolais, 75012", lat:48.8439, lng:2.3817,
+    desc:"Immense hall alternatif reconverti en food court. Concerts, food trucks, bières craft — la fête permanente.",
+    tags:["food court","alternatif","concerts"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xd947463a47d9e1e7", icon:"🍸", ic:"ic-bar" },
+  { city:"paris", name:"Académie de la bière", type:"bar", price:"€€", rating:4,
+    address:"88bis Bd de Port-Royal, 75005", lat:48.8427, lng:2.3428,
+    desc:"Temple de la bière artisanale dans le 5e. Grande sélection de bières belges et craft, ambiance détendue.",
+    tags:["bière","craft","5e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Académie+de+la+bière+Paris", icon:"🍺", ic:"ic-bar" },
+  { city:"paris", name:"Les Berthom", type:"bar", price:"€€", rating:5,
+    address:"2 Rue Saint-Paul, 75004", lat:48.8535, lng:2.3571,
+    desc:"Bar à bières convivial dans le Marais. Carte de bières artisanales impressionnante, ambiance festive.",
+    tags:["bière","marais","convivial"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Les+Berthom+Paris", icon:"🍺", ic:"ic-bar" },
+  { city:"paris", name:"The Bowler", type:"bar", price:"€€", rating:4,
+    address:"13 Rue d'Hauteville, 75010", lat:48.8747, lng:2.3515,
+    desc:"Pub américain dans le 10e. Burgers, bières et sport en direct — idéal pour une soirée.",
+    tags:["pub","sport","10e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=The+Bowler+Paris", icon:"🍺", ic:"ic-bar" },
+  { city:"paris", name:"Café l'Attirail", type:"café", price:"€€", rating:4,
+    address:"9 Rue Moret, 75011", lat:48.8681, lng:2.3757,
+    desc:"Café-concert bohème du 11e. Musique live, déco vintage, clientèle alternative.",
+    tags:["café","concert","11e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Café+l'Attirail+Paris", icon:"☕", ic:"ic-cafe" },
+  { city:"paris", name:"Le Loir dans La Théière", type:"café", price:"€€", rating:4,
+    address:"3 Rue des Rosiers, 75004", lat:48.8562, lng:2.3566,
+    desc:"Salon de thé iconique du Marais. Tartes maison, ambiance Alice au pays des merveilles.",
+    tags:["thé","tarte","marais"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Le+Loir+dans+La+Théière+Paris", icon:"🫖", ic:"ic-cafe" },
+  { city:"paris", name:"Cody's Bagels & Coffee Shop", type:"café", price:"€€", rating:5,
+    address:"7 Rue Condorcet, 75009", lat:48.8793, lng:2.3468,
+    desc:"Le meilleur café-bagels du 9e. Café de spécialité et bagels faits maison.",
+    tags:["café","bagels","9e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Cody's+Bagels+Coffee+Shop+Paris", icon:"☕", ic:"ic-cafe" },
+  { city:"paris", name:"Le Pavillon des Canaux", type:"café", price:"€€", rating:4,
+    address:"39 Quai de la Loire, 75019", lat:48.8871, lng:2.3849,
+    desc:"Maison atypique au bord du canal de l'Ourcq. Chaque pièce est une salle différente — brunch sur lit inclus.",
+    tags:["brunch","canal","19e"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Le+Pavillon+des+Canaux+Paris", icon:"☕", ic:"ic-cafe" },
+  { city:"paris", name:"Scoop Me a Cookie", type:"pâtisserie", price:"€", rating:5,
+    address:"38 Rue de Bretagne, 75003", lat:48.8631, lng:2.3625,
+    desc:"Cookies géants et gourmands dans le Marais. Parfums originaux et textures parfaites. Plusieurs adresses.",
+    tags:["cookies","marais","dessert"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x9bc78cd649f3dcb", icon:"🍪", ic:"ic-patisserie" },
+  { city:"paris", name:"Holy Cookie", type:"pâtisserie", price:"€€", rating:5,
+    address:"10 Rue Rambuteau, 75003", lat:48.8601, lng:2.3512,
+    desc:"Cookies de luxe dans le Marais. Grosses boulettes généreuses et parfums originaux.",
+    tags:["cookies","marais","gourmand"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Holy+Cookie+Paris", icon:"🍪", ic:"ic-patisserie" },
+  { city:"paris", name:"Manteigaria Saint-Lazare", type:"pâtisserie", price:"€€", rating:5,
+    address:"5 Rue Vignon, 75008", lat:48.8736, lng:2.3273,
+    desc:"Les meilleurs pastéis de nata de Paris. La recette originale de Lisbonne, directement importée.",
+    tags:["pasteis","portugais","incontournable"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=Manteigaria+Paris+Saint-Lazare", icon:"🥮", ic:"ic-patisserie" },
+  { city:"paris", name:"Pâtisserie Michalak", type:"pâtisserie", price:"€€€", rating:4,
+    address:"16 Rue de la Verrerie, 75004", lat:48.8566, lng:2.3527,
+    desc:"Le chef pâtissier Michalak dans le Marais. Créations audacieuses et dressages spectaculaires.",
+    tags:["pâtisserie","chef","marais"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pâtisserie+Michalak+Marais+Paris", icon:"🥐", ic:"ic-patisserie" },
+  { city:"paris", name:"La Pâtisserie Cyril Lignac", type:"pâtisserie", price:"€€€", rating:4,
+    address:"133 Rue de Courcelles, 75017", lat:48.8803, lng:2.3024,
+    desc:"La boutique Poncelet du chef Lignac. Éclairs, tartes et créations saisonnières.",
+    tags:["pâtisserie","chef","poncelet"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pâtisserie+Cyril+Lignac+Poncelet+Paris", icon:"🥐", ic:"ic-patisserie" },
+  { city:"paris", name:"La Maison d'Isabelle", type:"boulangerie", price:"€", rating:5,
+    address:"47 Bd Saint-Germain, 75005", lat:48.8518, lng:2.3478,
+    desc:"Touristique mais putain le meilleur croissant de Paris. Le croissant au beurre est une révélation.",
+    tags:["croissant","incontournable","5e"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=La+Maison+d'Isabelle+Paris", icon:"🥐", ic:"ic-boulangerie" },
+  { city:"paris", name:"Mamiche", type:"boulangerie", price:"€", rating:5,
+    address:"45 Rue Condorcet, 75009", lat:48.8811, lng:2.3452,
+    desc:"Boulangerie franco-algérienne dans le 9e. Brioche feuilletée et msemens à tomber. Plusieurs adresses.",
+    tags:["boulangerie","brioche","9e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Mamiche+boulangerie+Paris", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"paris", name:"Tranché Batignolles", type:"boulangerie", price:"€", rating:5,
+    address:"60 Rue des Batignolles, 75017", lat:48.8844, lng:2.3226,
+    desc:"Boulangerie engagée dans les Batignolles. Farines bio, levain naturel, engagements forts.",
+    tags:["bio","levain","batignolles"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Tranché+Batignolles+Paris", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"paris", name:"PANADE", type:"boulangerie", price:"€", rating:4,
+    address:"21 Rue de Rivoli, 75004", lat:48.8556, lng:2.3529,
+    desc:"Boulangerie artisanale dans le centre. Pains et viennoiseries soignés, bonne farine.",
+    tags:["boulangerie","artisanal","centre"], badge:null,
+    mapsLink:"https://maps.google.com/?q=PANADE+boulangerie+Paris", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"paris", name:"Pleincœur", type:"boulangerie", price:"€€", rating:4,
+    address:"26 Rue Rambuteau, 75003", lat:48.8601, lng:2.3507,
+    desc:"Boulangerie-pâtisserie du Marais. Produits de qualité, decor soigné.",
+    tags:["boulangerie","marais","qualité"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Pleincœur+Paris", icon:"🍞", ic:"ic-boulangerie" },
+
+  // ── LYON (39) ─────────────────────────────────────
+  { city:"lyon", name:"Pâtisserie Chocolaterie Sève", type:"pâtisserie", price:"€€", rating:5,
+    address:"29 Quai Saint-Antoine, 69002", lat:45.7622, lng:4.8321,
+    desc:"La référence pâtisserie-chocolaterie de Lyon. Pralines, ganaches et gâteaux d'exception.",
+    tags:["chocolat","pâtisserie","quai"], badge:"must",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x9df1e32625719a85", icon:"🍫", ic:"ic-patisserie" },
+  { city:"lyon", name:"Duclef Café Pâtisserie", type:"pâtisserie", price:"€€", rating:5,
+    address:"Rue Victor Hugo, 69002 Lyon", lat:45.7590, lng:4.8327,
+    desc:"Pâtisserie fine dans la rue Victor Hugo. Gâteaux élaborés et finitions impeccables.",
+    tags:["pâtisserie","victor hugo","soigné"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Duclef+Café+Pâtisserie+Lyon", icon:"🥐", ic:"ic-patisserie" },
+  { city:"lyon", name:"DORNER FRERES", type:"pâtisserie", price:"€€", rating:5,
+    address:"Rue Auguste Comte, 69002 Lyon", lat:45.7569, lng:4.8321,
+    desc:"Pâtisserie familiale installée depuis des générations. Savoir-faire traditionnel lyonnais.",
+    tags:["tradition","pâtisserie","lyon"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=DORNER+FRERES+Lyon", icon:"🥐", ic:"ic-patisserie" },
+  { city:"lyon", name:"ALMA par Marvin Brandao", type:"pâtisserie", price:"€€", rating:5,
+    address:"Rue des Capucins, 69001 Lyon", lat:45.7697, lng:4.8338,
+    desc:"Pâtisserie-boulangerie-chocolaterie du chef Marvin Brandao. Créativité et technicité au service du goût.",
+    tags:["chef","créatif","presqu'île"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=ALMA+Marvin+Brandao+Lyon", icon:"🥐", ic:"ic-patisserie" },
+  { city:"lyon", name:"SOHA Cookies", type:"pâtisserie", price:"€€", rating:5,
+    address:"Rue Mercière, 69002 Lyon", lat:45.7612, lng:4.8321,
+    desc:"Cookies artisanaux lyonnais. Parfums audacieux et textures généreuses.",
+    tags:["cookies","artisanal","mercière"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=SOHA+Cookies+Lyon", icon:"🍪", ic:"ic-patisserie" },
+  { city:"lyon", name:"Délices des Sens", type:"pâtisserie", price:"€€€", rating:4,
+    address:"Rue d'Algérie, 69001 Lyon", lat:45.7679, lng:4.8320,
+    desc:"Pâtisserie haut de gamme dans le 1er. Entremets contemporains et chocolats fins.",
+    tags:["pâtisserie","haut de gamme","1er"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Délices+des+Sens+Lyon", icon:"🥐", ic:"ic-patisserie" },
+  { city:"lyon", name:"Chocolaterie Sève — Les Halles", type:"pâtisserie", price:"€€€", rating:4,
+    address:"102 Cours Lafayette, 69003 Lyon", lat:45.7606, lng:4.8576,
+    desc:"La chocolaterie Sève aux Halles Paul Bocuse. Chocolats artisanaux de très haute qualité.",
+    tags:["chocolat","halles","artisanal"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Chocolaterie+Sève+Halles+Lyon", icon:"🍫", ic:"ic-patisserie" },
+  { city:"lyon", name:"Chocolats Voisin Bellecour", type:"pâtisserie", price:"€€", rating:4,
+    address:"Place Bellecour, 69002 Lyon", lat:45.7579, lng:4.8322,
+    desc:"Chocolatier lyonnais historique sur la place Bellecour. Incontournable pour les coussins de Lyon.",
+    tags:["chocolat","bellecour","tradition"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Chocolats+Voisin+Bellecour+Lyon", icon:"🍫", ic:"ic-patisserie" },
+  { city:"lyon", name:"My sushi", type:"restaurant", price:"€€", rating:4,
+    address:"3 Rue Louis Vitet, 69001 Lyon", lat:45.7685, lng:4.8311,
+    desc:"Excellent restaurant japonais avec un service aux petits soins. À deux pas de la presqu'île.",
+    tags:["sushi","japonais","service"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x89ab724ae47e782c", icon:"🍣", ic:"ic-restaurant" },
+  { city:"lyon", name:"Carmelo", type:"restaurant", price:"€€", rating:5,
+    address:"Rue de la République, 69002 Lyon", lat:45.7634, lng:4.8334,
+    desc:"Très bon restaurant italien en plein cœur de Lyon. Pâtes fraîches et service chaleureux.",
+    tags:["italien","pâtes","presqu'île"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Carmelo+restaurant+Lyon", icon:"🍝", ic:"ic-restaurant" },
+  { city:"lyon", name:"La Commune", type:"restaurant", price:"€€", rating:4,
+    address:"Rue Diderot, 69006 Lyon", lat:45.7738, lng:4.8482,
+    desc:"Restaurant de quartier dans le 6e. Cuisine du marché, bonne cave, clientèle fidèle.",
+    tags:["marché","6e","quartier"], badge:null,
+    mapsLink:"https://maps.google.com/?q=La+Commune+restaurant+Lyon", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Bichon Restaurant", type:"restaurant", price:"€€", rating:5,
+    address:"Rue Grenette, 69001 Lyon", lat:45.7675, lng:4.8336,
+    desc:"Adresse attachante dans le 1er. Cuisine lyonnaise revisitée avec affection.",
+    tags:["lyonnais","grenette","attachant"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Bichon+Restaurant+Lyon", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Le Bistrot du Père", type:"restaurant", price:"€€", rating:5,
+    address:"Rue du Bât d'Argent, 69001 Lyon", lat:45.7673, lng:4.8343,
+    desc:"Bistrot chaleureux dans le vieux Lyon. Cuisine du marché, patron passionné.",
+    tags:["bistrot","presqu'île","chaleureux"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Le+Bistrot+du+Père+Lyon", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Toké Place Sathonay", type:"restaurant", price:"€€", rating:5,
+    address:"Place Sathonay, 69001 Lyon", lat:45.7683, lng:4.8333,
+    desc:"Restaurant asiatique fusion sur la place Sathonay. Cuisine thaïe et japonaise mêlées.",
+    tags:["asiatique","sathonay","fusion"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Toké+Place+Sathonay+Lyon", icon:"🍱", ic:"ic-restaurant" },
+  { city:"lyon", name:"Les Filous Lyon", type:"restaurant", price:"€€", rating:5,
+    address:"Rue Saint-Jean, 69005 Lyon", lat:45.7621, lng:4.8275,
+    desc:"Street food grecque authentique dans le vieux Lyon. Gyros et mezze bien exécutés.",
+    tags:["grec","street food","vieux lyon"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Les+Filous+Lyon", icon:"🥙", ic:"ic-restaurant" },
+  { city:"lyon", name:"GREEKIA Bellecour", type:"restaurant", price:"€€", rating:5,
+    address:"Rue Victor Hugo, 69002 Lyon", lat:45.7566, lng:4.8327,
+    desc:"Street food grecque à deux pas de Bellecour. Gyros et pitas généreux, service rapide.",
+    tags:["grec","bellecour","street food"], badge:null,
+    mapsLink:"https://maps.google.com/?q=GREEKIA+Bellecour+Lyon", icon:"🥙", ic:"ic-restaurant" },
+  { city:"lyon", name:"KEFI", type:"restaurant", price:"€€", rating:5,
+    address:"Rue de la Barre, 69002 Lyon", lat:45.7585, lng:4.8319,
+    desc:"Cuisine grecque soignée dans la presqu'île. Carte courte et généreuse, vrais produits.",
+    tags:["grec","presqu'île","soigné"], badge:null,
+    mapsLink:"https://maps.google.com/?q=KEFI+restaurant+Lyon", icon:"🫕", ic:"ic-restaurant" },
+  { city:"lyon", name:"LE COMPTOIR LIBANAIS", type:"restaurant", price:"€€", rating:5,
+    address:"Rue Bossuet, 69006 Lyon", lat:45.7736, lng:4.8478,
+    desc:"Le meilleur libanais de Lyon dans le 6e. Houmous maison, grillades parfumées.",
+    tags:["libanais","6e","incontournable"], badge:"fav",
+    mapsLink:"https://maps.google.com/?q=LE+COMPTOIR+LIBANAIS+Lyon+6", icon:"🫕", ic:"ic-restaurant" },
+  { city:"lyon", name:"TinaTane", type:"restaurant", price:"€€", rating:5,
+    address:"43 Rue de Cuire, 69004 Lyon", lat:45.7787, lng:4.8294,
+    desc:"Patron très sympa, pain maison, frites maison et recettes originales. Vraiment délicieux.",
+    tags:["fait maison","original","croix-rousse"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xccbcdbdd15d940b1", icon:"🍔", ic:"ic-restaurant" },
+  { city:"lyon", name:"PNY Presqu'île", type:"restaurant", price:"€€", rating:5,
+    address:"59 Rue Mercière, 69002 Lyon", lat:45.7619, lng:4.8331,
+    desc:"Les burgers PNY débarquent à Lyon. Bons produits, bonnes recettes — fidèle à la réputation parisienne.",
+    tags:["burger","mercière","qualité"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xd733eb4c82411f8d", icon:"🍔", ic:"ic-restaurant" },
+  { city:"lyon", name:"Döner Gang", type:"restaurant", price:"€", rating:5,
+    address:"2 Cours de la République, Villeurbanne", lat:45.7715, lng:4.8735,
+    desc:"Le meilleur kebab de Lyon et très original. Adresse culte chez les initiés.",
+    tags:["kebab","villeurbanne","original"], badge:"must",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x5e3ffd6679bf2c91", icon:"🥙", ic:"ic-restaurant" },
+  { city:"lyon", name:"CHËF — berliner kebab", type:"restaurant", price:"€€", rating:4,
+    address:"Rue Garibaldi, 69003 Lyon", lat:45.7572, lng:4.8546,
+    desc:"Berliner kebab version lyonnaise. Viande en broche, sauce blanche, qualité au rendez-vous.",
+    tags:["berliner kebab","garibaldi","3e"], badge:null,
+    mapsLink:"https://maps.google.com/?q=CHËF+berliner+kebab+Lyon", icon:"🥙", ic:"ic-restaurant" },
+  { city:"lyon", name:"Rotana Buffet Lyon", type:"restaurant", price:"€€", rating:5,
+    address:"19 Rue Gentil, 69002 Lyon", lat:45.7651, lng:4.8364,
+    desc:"Buffet généreux en presqu'île. Large choix de cuisines du monde à prix raisonnable.",
+    tags:["buffet","monde","presqu'île"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xfd67212a0857f0db", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Café Gadagne", type:"restaurant", price:"€€", rating:4,
+    address:"Rue du Boeuf, 69005 Lyon", lat:45.7627, lng:4.8274,
+    desc:"Restaurant du musée Gadagne dans le vieux Lyon. Vue imprenable sur les toits depuis la terrasse.",
+    tags:["musée","terrasse","vieux lyon"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Café+Gadagne+Lyon", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"L'Authentik Oullins", type:"restaurant", price:"€€", rating:4,
+    address:"45 Rue Pierre Semard, Oullins", lat:45.7177, lng:4.8137,
+    desc:"Recettes originales et cuisine maison à Oullins. Une belle surprise hors des sentiers battus.",
+    tags:["original","oullins","maison"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x2ef188cb7634ab7c", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Gump's Corner", type:"restaurant", price:"€€", rating:5,
+    address:"25 Place Carnot, 69002 Lyon", lat:45.7518, lng:4.8271,
+    desc:"Adresse sympa sur la Place Carnot. Cuisine de brasserie dans un cadre animé.",
+    tags:["carnot","brasserie","animé"], badge:null,
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x56f4d7d143c9cdee", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Pignouf", type:"restaurant", price:"€€", rating:5,
+    address:"22 Rue Chevreul, 69007 Lyon", lat:45.7490, lng:4.8385,
+    desc:"Adresse confidentielle dans le 7ème. Cuisine du marché sans fioriture, service décontracté.",
+    tags:["marché","lyon 7","confidentiel"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0x8fc6d16ac63ecb2f", icon:"🍽️", ic:"ic-restaurant" },
+  { city:"lyon", name:"Le Saint Laurent — Pizzeria", type:"pizzeria", price:"€€", rating:5,
+    address:"82 Rue Bechevelin, 69007 Lyon", lat:45.7476, lng:4.8389,
+    desc:"Pizzeria au feu de bois dans le 7ème. Pâte croustillante, garnitures généreuses.",
+    tags:["feu de bois","pizza","lyon 7"], badge:"fav",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xa3c5ecaac85206e2", icon:"🍕", ic:"ic-pizzeria" },
+  { city:"lyon", name:"Jobaar", type:"bar", price:"€€", rating:4,
+    address:"Rue Sainte-Catherine, 69001 Lyon", lat:45.7682, lng:4.8340,
+    desc:"Bar festif et animé dans le 1er. Cocktails accessibles, bonne ambiance en soirée.",
+    tags:["festif","1er","cocktails"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Jobaar+Bar+Lyon", icon:"🍸", ic:"ic-bar" },
+  { city:"lyon", name:"Les Berthom Lyon", type:"bar", price:"€€", rating:5,
+    address:"Rue des Marronniers, 69002 Lyon", lat:45.7589, lng:4.8336,
+    desc:"La chaîne bar à bières aussi à Lyon. Même concept qu'à Paris — grande sélection de craft.",
+    tags:["bière","craft","presqu'île"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Les+Berthom+Lyon", icon:"🍺", ic:"ic-bar" },
+  { city:"lyon", name:"Les Culottes Longues", type:"bar", price:"€€", rating:5,
+    address:"42 Rue Sala, 69002 Lyon", lat:45.7548, lng:4.8318,
+    desc:"Bar à vins et bistrot décomplexé dans la Confluence. Carte courte et bien choisie.",
+    tags:["vins","bistrot","confluence"], badge:"gem",
+    mapsLink:"https://www.google.com/maps/place//data=!4m2!3m1!1s0x0:0xb40243fe637c6f1a", icon:"🍷", ic:"ic-bar" },
+  { city:"lyon", name:"El Ghoul Brahim", type:"boulangerie", price:"€", rating:5,
+    address:"Rue Terme, 69001 Lyon", lat:45.7695, lng:4.8322,
+    desc:"Boulangerie artisanale du 1er. Pains au levain et msemens faits maison.",
+    tags:["boulangerie","artisanal","1er"], badge:null,
+    mapsLink:"https://maps.google.com/?q=El+Ghoul+Brahim+boulangerie+Lyon", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"lyon", name:"Boulangerie Les Frères Barioz", type:"boulangerie", price:"€", rating:5,
+    address:"Rue Burdeau, 69001 Lyon", lat:45.7727, lng:4.8290,
+    desc:"Boulangerie artisanale sur les pentes de la Croix-Rousse. Pains au levain et viennoiseries soignées.",
+    tags:["boulangerie","levain","croix-rousse"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Les+Frères+Barioz+Lyon", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"lyon", name:"Maison Terrasson", type:"boulangerie", price:"€", rating:4,
+    address:"Rue de Brest, 69002 Lyon", lat:45.7601, lng:4.8347,
+    desc:"Boulangerie de presqu'île appréciée des lyonnais. Pains de qualité au quotidien.",
+    tags:["boulangerie","presqu'île","quotidien"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Maison+Terrasson+Lyon", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"lyon", name:"Boulangerie Marcel Lyon", type:"boulangerie", price:"€€", rating:4,
+    address:"Rue de Brest, 69002 Lyon", lat:45.7607, lng:4.8351,
+    desc:"Boulangerie tendance de presqu'île. Produits soignés et déco moderne.",
+    tags:["boulangerie","tendance","presqu'île"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Boulangerie+Marcel+Lyon", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"lyon", name:"Jocteur le Boulanger de l'Île Barbe", type:"boulangerie", price:"€", rating:4,
+    address:"Île Barbe, 69009 Lyon", lat:45.8053, lng:4.8060,
+    desc:"Boulangerie unique sur l'Île Barbe au nord de Lyon. Pains de caractère dans un cadre enchanteur.",
+    tags:["boulangerie","île barbe","unique"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Jocteur+Boulanger+Île+Barbe+Lyon", icon:"🍞", ic:"ic-boulangerie" },
+  { city:"lyon", name:"Traboule et Cour des Voraces", type:"sortie", price:"€", rating:4,
+    address:"Place Colbert, 69004 Lyon", lat:45.7728, lng:4.8268,
+    desc:"La traboule la plus célèbre de la Croix-Rousse. Cour intérieure majestueuse, escalier monumental.",
+    tags:["traboule","croix-rousse","patrimoine"], badge:null,
+    mapsLink:"https://maps.google.com/?q=Traboule+Cour+des+Voraces+Lyon", icon:"🏛️", ic:"ic-sortie" },
+  { city:"lyon", name:"Jardin des Curiosités", type:"sortie", price:"€", rating:5,
+    address:"Rue Delandine, 69002 Lyon", lat:45.7576, lng:4.8281,
+    desc:"Petit jardin perché avec vue panoramique sur Lyon. Un trésor caché dans le 2e.",
+    tags:["jardin","vue","caché"], badge:"gem",
+    mapsLink:"https://maps.google.com/?q=Jardin+des+Curiosités+Lyon", icon:"🌿", ic:"ic-sortie" },
+  { city:"lyon", name:"Les Halles de Lyon Paul Bocuse", type:"sortie", price:"€€", rating:5,
+    address:"102 Cours Lafayette, 69003 Lyon", lat:45.7606, lng:4.8576,
+    desc:"Le temple de la gastronomie lyonnaise. Charcuteries, fromages, pralines — une immersion dans le goût.",
+    tags:["halles","gastronomie","incontournable"], badge:"must",
+    mapsLink:"https://maps.google.com/?q=Les+Halles+de+Lyon+Paul+Bocuse", icon:"🛒", ic:"ic-sortie" }
+];
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function starsHtml(r) {
+  const full = Math.floor(r), half = r % 1 >= 0.5;
+  let s = '';
+  for(let i=0;i<5;i++) s += i<full ? '⭐' : (i===full&&half ? '✨' : '☆');
+  return s;
+}
+
+const BADGES = {
+  must: ['bm','🔥 Incontournable'],
+  fav:  ['bf','❤️ Coup de cœur'],
+  gem:  ['bg','💎 Pépite']
+};
+
+// ══════════════════════════════════════════════════════
+//  FILTER STATE
+// ══════════════════════════════════════════════════════
+const act = { city:'all', type:'all', price:'all' };
+
+function render() {
+  const grid = document.getElementById('cards-grid');
+  grid.querySelectorAll('.pcard').forEach(c => c.remove());
+
+  const filtered = places.filter(p =>
+    (act.city  === 'all' || p.city  === act.city)  &&
+    (act.type  === 'all' || p.type  === act.type)  &&
+    (act.price === 'all' || p.price === act.price)
+  );
+
+  document.getElementById('res-count').textContent =
+    filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '');
+  document.getElementById('stat-total').textContent = places.length;
+  document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
+
+  ['milan','paris','lyon'].forEach(c => {
+    const n = places.filter(p => p.city === c).length;
+    document.getElementById('count-'+c).textContent = n + ' adresse' + (n>1?'s':'');
+  });
+
+  filtered.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'pcard';
+    card.setAttribute('data-type', p.type);
+    card.style.animationDelay = `${i*0.04}s`;
+    const cl = {milan:'Paris',paris:'Paris',lyon:'Lyon'};
+    const cityLabel = {milan:'Milan',paris:'Paris',lyon:'Lyon'}[p.city];
+    const typeLabel = p.type.charAt(0).toUpperCase()+p.type.slice(1);
+    const [bcls, blbl] = p.badge ? BADGES[p.badge] : ['',''];
+    card.innerHTML = `
+      <div class="pcard-head">
+        <div class="picon ${p.ic}">${p.icon}</div>
+        <div class="pcard-info">
+          <div class="pcard-name">${p.name}</div>
+          <div class="pmeta">
+            <span class="cpill cp-${p.city}">${cityLabel}</span>
+            <span class="tpill">${typeLabel}</span>
+          </div>
+        </div>
+        ${p.badge ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
+      </div>
+      <div class="pcard-body">
+        <p class="pdesc">${p.desc}</p>
+        <div class="ptags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="pcard-foot">
+        <span class="stars">${starsHtml(p.rating)}</span>
+        <span class="pprice">${p.price}</span>
+        <span class="paddr">📍 ${p.address}</span>
+        <a href="${p.mapsLink}" target="_blank" rel="noopener" class="btn-go">Maps →</a>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.fbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ft = btn.dataset.filter;
+    document.querySelectorAll(`[data-filter="${ft}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    act[ft] = btn.dataset.value;
+    render();
+  });
+});
+
+// ══════════════════════════════════════════════════════
+//  LEAFLET MAPS
+// ══════════════════════════════════════════════════════
+const TYPE_COLOR = {
+  'pâtisserie':  '#FFD23F',
+  'restaurant':  '#FF6B35',
+  'pizzeria':    '#E5383B',
+  'bar':         '#7C3AED',
+  'boulangerie': '#F59E0B',
+  'café':        '#92400E',
+  'sortie':      '#0891B2'
+};
+const CITY_CENTER = {
+  milan: [45.4654, 9.1859],
+  paris: [48.8566, 2.3522],
+  lyon:  [45.7640, 4.8357]
+};
+const leafletMaps = {};
+
+function initLeafletMap(city) {
+  if (leafletMaps[city]) {
+    leafletMaps[city].invalidateSize();
+    return;
+  }
+  const map = L.map('lmap-' + city, { zoomControl: true }).setView(CITY_CENTER[city], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  places.filter(p => p.city === city).forEach(p => {
+    const color = TYPE_COLOR[p.type] || '#00B4D8';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="background:${color};border:3px solid #1A1A2E;border-radius:50% 50% 50% 0;width:36px;height:36px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,0.25)"><span style="transform:rotate(45deg);font-size:1.1rem;line-height:1">${p.icon}</span></div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -38]
+    });
+    const badgeHtml = p.badge ? `<span style="background:#1A1A2E;color:#FFD23F;font-size:0.7rem;padding:2px 7px;border-radius:20px;font-weight:700">${p.badge === 'must' ? '🔥 Incontournable' : p.badge === 'fav' ? '❤️ Coup de cœur' : '💎 Pépite'}</span>` : '';
+    L.marker([p.lat, p.lng], { icon }).addTo(map).bindPopup(
+      `<div style="font-family:'Nunito',sans-serif;min-width:180px">
+        <div style="font-weight:800;font-size:1rem;margin-bottom:4px">${p.icon} ${p.name}</div>
+        ${badgeHtml}
+        <div style="color:#666;font-size:0.8rem;margin:4px 0">${p.type} · ${p.price}</div>
+        <div style="font-size:0.78rem;color:#444;margin-bottom:6px">${p.address}</div>
+        <a href="${p.mapsLink}" target="_blank" rel="noopener" style="background:#1A1A2E;color:#FFD23F;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;text-decoration:none">Maps →</a>
+      </div>`
+    );
+  });
+  leafletMaps[city] = map;
+}
+
+function toggleMap(city) {
+  const panel = document.getElementById('map-'+city);
+  const btn   = document.getElementById('btn-'+city);
+  const open  = panel.classList.contains('open');
+  document.querySelectorAll('.map-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.btn-mapico').forEach(b => { b.classList.remove('open'); b.textContent = '🗺️'; });
+  if (!open) {
+    panel.classList.add('open');
+    btn.classList.add('open');
+    btn.textContent = '✕';
+    setTimeout(() => initLeafletMap(city), 50);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  SCROLL REVEAL
+// ══════════════════════════════════════════════════════
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+render();
+
+// ══════════════════════════════════════════════════════
+//  GOOGLE SHEETS SYNC — live data source
+// ══════════════════════════════════════════════════════
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5w17--h8WAdc4NritirRSbJdCjGdGnm7oytFYRZFDz-x__jsRWULdOcL_cmt0MJlvm7c17zf75g9n/pub?gid=1622534072&single=true&output=csv';
+const IC_MAP = { 'café':'ic-cafe','restaurant':'ic-restaurant','bar':'ic-bar','pâtisserie':'ic-patisserie','pizzeria':'ic-pizzeria','boulangerie':'ic-boulangerie','sortie':'ic-sortie' };
+
+function parseSheetCSV(text) {
+  const rows = [];
+  let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i+1] === '"') { cell += '"'; i++; }
+      else if (c === '"') { q = false; }
+      else { cell += c; }
+    } else {
+      if (c === '"') { q = true; }
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); if (row.some(Boolean)) rows.push(row); row = []; cell = ''; }
+      else if (c !== '\r') { cell += c; }
+    }
+  }
+  if (row.length) { row.push(cell); if (row.some(Boolean)) rows.push(row); }
+  return rows;
+}
+
+function sheetRowToPlace(hdr, r) {
+  const o = {};
+  hdr.forEach((h, i) => o[h.trim()] = (r[i] || '').trim());
+  return {
+    city: o.city, name: o.name, type: o.type, price: o.price,
+    rating: parseFloat(o.rating) || 0,
+    address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
+    desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
+    badge: o.badge || null, mapsLink: o.mapsLink, icon: o.icon,
+    ic: IC_MAP[o.type] || 'ic-restaurant'
+  };
+}
+
+(async () => {
+  try {
+    const res = await fetch(SHEET_CSV);
+    if (!res.ok) return;
+    const text = await res.text();
+    const rows = parseSheetCSV(text);
+    if (rows.length < 2) return;
+    const hdr = rows[0];
+    const loaded = rows.slice(1).filter(r => r[0]).map(r => sheetRowToPlace(hdr, r));
+    if (loaded.length < 10) return; // sanity check
+    places = loaded;
+    render();
+  } catch (e) { /* silently use hardcoded fallback */ }
+})();
+</script>
+</body>
+</html>
