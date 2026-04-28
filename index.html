@@ -669,6 +669,7 @@
         <button class="btn-mapico" id="btn-milan" onclick="toggleMap('milan')" title="Voir la carte">🗺️</button>
       </div>
       <div class="map-panel" id="map-milan">
+        <div id="mstatus-milan" style="padding:6px 12px;font-size:0.8rem;color:#666;background:#f5f5f5;text-align:center;display:none"></div>
         <div id="lmap-milan" style="height:300px;width:100%;"></div>
       </div>
     </div>
@@ -686,6 +687,7 @@
         <button class="btn-mapico" id="btn-paris" onclick="toggleMap('paris')" title="Voir la carte">🗺️</button>
       </div>
       <div class="map-panel" id="map-paris">
+        <div id="mstatus-paris" style="padding:6px 12px;font-size:0.8rem;color:#666;background:#f5f5f5;text-align:center;display:none"></div>
         <div id="lmap-paris" style="height:300px;width:100%;"></div>
       </div>
     </div>
@@ -703,6 +705,7 @@
         <button class="btn-mapico" id="btn-lyon" onclick="toggleMap('lyon')" title="Voir la carte">🗺️</button>
       </div>
       <div class="map-panel" id="map-lyon">
+        <div id="mstatus-lyon" style="padding:6px 12px;font-size:0.8rem;color:#666;background:#f5f5f5;text-align:center;display:none"></div>
         <div id="lmap-lyon" style="height:300px;width:100%;"></div>
       </div>
     </div>
@@ -1587,6 +1590,9 @@ document.querySelectorAll('.fbtn').forEach(btn => {
 // ══════════════════════════════════════════════════════
 //  LEAFLET MAPS
 // ══════════════════════════════════════════════════════
+const GEO_CACHE_KEY = 'guide_geo_v1';
+let geoCache = {};
+try { geoCache = JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); } catch(e) {}
 const TYPE_COLOR = {
   'pâtisserie':  '#FFD23F',
   'restaurant':  '#FF6B35',
@@ -1603,7 +1609,7 @@ const CITY_CENTER = {
 };
 const leafletMaps = {};
 
-function initLeafletMap(city) {
+async function initLeafletMap(city) {
   if (leafletMaps[city]) {
     leafletMaps[city].invalidateSize();
     return;
@@ -1613,18 +1619,23 @@ function initLeafletMap(city) {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19
   }).addTo(map);
+  leafletMaps[city] = map;
 
-  places.filter(p => p.city === city).forEach(p => {
+  const cityPlaces = places.filter(p => p.city === city);
+  const statusEl = document.getElementById('mstatus-' + city);
+  const uncachedTotal = cityPlaces.filter(p => !geoCache[p.address]).length;
+  let uncachedDone = 0;
+  let needsDelay = false;
+
+  const addMarker = (p, pos) => {
     const color = TYPE_COLOR[p.type] || '#00B4D8';
     const icon = L.divIcon({
       className: '',
       html: `<div style="background:${color};border:3px solid #1A1A2E;border-radius:50% 50% 50% 0;width:36px;height:36px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,0.25)"><span style="transform:rotate(45deg);font-size:1.1rem;line-height:1">${p.icon}</span></div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-      popupAnchor: [0, -38]
+      iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38]
     });
     const badgeHtml = p.badge ? `<span style="background:#1A1A2E;color:#FFD23F;font-size:0.7rem;padding:2px 7px;border-radius:20px;font-weight:700">${p.badge === 'must' ? '🔥 Incontournable' : p.badge === 'fav' ? '❤️ Coup de cœur' : '💎 Pépite'}</span>` : '';
-    L.marker([p.lat, p.lng], { icon }).addTo(map).bindPopup(
+    L.marker(pos, { icon }).addTo(map).bindPopup(
       `<div style="font-family:'Nunito',sans-serif;min-width:180px">
         <div style="font-weight:800;font-size:1rem;margin-bottom:4px">${p.icon} ${p.name}</div>
         ${badgeHtml}
@@ -1633,8 +1644,35 @@ function initLeafletMap(city) {
         <a href="${p.mapsLink}" target="_blank" rel="noopener" style="background:#1A1A2E;color:#FFD23F;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;text-decoration:none">Maps →</a>
       </div>`
     );
-  });
-  leafletMaps[city] = map;
+  };
+
+  if (uncachedTotal > 0 && statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = `📍 Géocodage des adresses… 0 / ${uncachedTotal}`;
+  }
+
+  for (const p of cityPlaces) {
+    let pos = geoCache[p.address];
+    if (!pos) {
+      if (needsDelay) await new Promise(r => setTimeout(r, 1100));
+      needsDelay = true;
+      try {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(p.address)}&format=json&limit=1`,
+          { headers: { 'Accept-Language': 'fr,en' } }
+        );
+        const data = await r.json();
+        if (data && data[0]) {
+          pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          geoCache[p.address] = pos;
+          localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(geoCache));
+        }
+      } catch(e) {}
+      if (statusEl) statusEl.textContent = `📍 Géocodage des adresses… ${++uncachedDone} / ${uncachedTotal}`;
+    }
+    if (pos) addMarker(p, pos);
+  }
+  if (statusEl) statusEl.style.display = 'none';
 }
 
 function toggleMap(city) {
