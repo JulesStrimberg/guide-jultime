@@ -9,6 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -484,6 +486,42 @@
 
     .tpill { font-size: 0.58rem; font-weight: 700; color: #9CA3AF; }
     .multi-tag { font-size: 0.58rem; font-weight: 700; color: #7C3AED; background: #EDE9FE; border-radius: 4px; padding: 2px 6px; }
+
+    /* ── SOCIAL ──────────────────────────────────────── */
+    .pcard-social { display:flex; gap:0.5rem; padding:0.5rem 1rem 0.75rem; border-top:1px solid #F3F4F6; }
+    .btn-like, .btn-comments {
+      background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:20px;
+      padding:4px 12px; font-size:0.75rem; font-weight:700; color:#6B7280;
+      cursor:pointer; transition:all 0.15s; font-family:'Nunito',sans-serif;
+    }
+    .btn-like:hover { border-color:#FDA4AF; color:#E11D48; }
+    .btn-like.liked { background:#FFF1F2; border-color:#FDA4AF; color:#E11D48; }
+    .btn-comments:hover, .btn-comments.open { background:#1A1A2E; color:#FFD23F; border-color:#1A1A2E; }
+    .comment-section {
+      padding:0.75rem 1rem 1rem; border-top:1px solid #F3F4F6;
+      background:#FAFAFA; border-radius:0 0 16px 16px;
+    }
+    .cloading { font-size:0.78rem; color:#9CA3AF; padding:0.4rem 0; text-align:center; }
+    .comment-item { padding:0.5rem 0; border-bottom:1px solid #F3F4F6; }
+    .comment-item:last-child { border-bottom:none; }
+    .ci-name { font-weight:800; font-size:0.78rem; color:#1A1A2E; }
+    .ci-date { font-size:0.68rem; color:#9CA3AF; margin-left:6px; }
+    .ci-text { font-size:0.78rem; color:#4B5563; margin:3px 0 0; line-height:1.45; }
+    .comment-form { margin-top:0.75rem; display:flex; flex-direction:column; gap:0.4rem; }
+    .cf-input {
+      width:100%; padding:7px 10px; border:1.5px solid #E5E7EB; border-radius:8px;
+      font-size:0.78rem; font-family:'Nunito',sans-serif; background:#fff;
+      box-sizing:border-box; resize:none;
+    }
+    .cf-input:focus { outline:none; border-color:#1A1A2E; }
+    .cf-input.err { border-color:#E11D48; }
+    .btn-send {
+      align-self:flex-end; background:#1A1A2E; color:#FFD23F; border:none;
+      border-radius:20px; padding:6px 18px; font-size:0.78rem; font-weight:700;
+      cursor:pointer; font-family:'Nunito',sans-serif; transition:opacity 0.15s;
+    }
+    .btn-send:hover { opacity:0.85; }
+    .btn-send:disabled { opacity:0.45; cursor:not-allowed; }
 
     /* badge */
     .pbadge {
@@ -1548,10 +1586,11 @@ function render() {
     card.className = 'pcard';
     card.setAttribute('data-type', p.type);
     card.style.animationDelay = `${i*0.04}s`;
-    const cl = {milan:'Paris',paris:'Paris',lyon:'Lyon'};
     const cityLabel = {milan:'Milan',paris:'Paris',lyon:'Lyon'}[p.city];
     const typeLabel = p.type.charAt(0).toUpperCase()+p.type.slice(1);
     const [bcls, blbl] = p.badge ? BADGES[p.badge] : ['',''];
+    const pid = (p.city+'_'+p.name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,80);
+    card.setAttribute('data-spid', pid);
     card.innerHTML = `
       <div class="pcard-head">
         <div class="picon ${p.ic}">${p.icon}</div>
@@ -1574,9 +1613,22 @@ function render() {
         <span class="pprice">${p.price}</span>
         <span class="paddr">📍 ${p.address}</span>
         <a href="${p.mapsLink}" target="_blank" rel="noopener" class="btn-go">Maps →</a>
+      </div>
+      <div class="pcard-social">
+        <button class="btn-like" data-pid="${pid}" onclick="toggleLike('${pid}',this)">❤️ <span class="lc">·</span></button>
+        <button class="btn-comments" data-pid="${pid}" onclick="toggleComments('${pid}',this)">💬 <span class="cc">Commenter</span></button>
+      </div>
+      <div class="comment-section" id="cs-${pid}" style="display:none">
+        <div class="comments-list" id="cl-${pid}"></div>
+        <div class="comment-form">
+          <input type="text" class="cf-input" id="cf-name-${pid}" placeholder="Ton prénom" maxlength="30">
+          <textarea class="cf-input" id="cf-text-${pid}" placeholder="Ton commentaire..." maxlength="300" rows="2"></textarea>
+          <button class="btn-send" onclick="submitComment('${pid}')">Envoyer ↗</button>
+        </div>
       </div>`;
     grid.appendChild(card);
   });
+  if (typeof observeSocialCards === 'function') observeSocialCards();
 }
 
 document.querySelectorAll('.fbtn').forEach(btn => {
@@ -1698,6 +1750,120 @@ const obs = new IntersectionObserver(es => {
   es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ══════════════════════════════════════════════════════
+//  FIREBASE — likes & commentaires
+// ══════════════════════════════════════════════════════
+firebase.initializeApp({
+  apiKey: "AIzaSyD3kQyP1t82Gl3RfgBN3fjSRnBY8yF0iSM",
+  authDomain: "guide-jultime.firebaseapp.com",
+  projectId: "guide-jultime",
+  storageBucket: "guide-jultime.firebasestorage.app",
+  messagingSenderId: "611618575882",
+  appId: "1:611618575882:web:28ab55f6f792de112c71f3"
+});
+const db = firebase.firestore();
+
+const LIKED_KEY = 'guide_liked_v1';
+function getLiked() { try { return JSON.parse(localStorage.getItem(LIKED_KEY)||'[]'); } catch(e) { return []; } }
+function setLiked(a) { localStorage.setItem(LIKED_KEY, JSON.stringify(a)); }
+
+async function loadCounts(pid) {
+  try {
+    const snap = await db.collection('places').doc(pid).get();
+    const d = snap.exists ? snap.data() : {};
+    const likeBtn = document.querySelector(`.btn-like[data-pid="${pid}"]`);
+    const commBtn = document.querySelector(`.btn-comments[data-pid="${pid}"]`);
+    if (likeBtn) {
+      likeBtn.querySelector('.lc').textContent = d.likeCount || 0;
+      if (getLiked().includes(pid)) likeBtn.classList.add('liked');
+    }
+    if (commBtn) {
+      const n = d.commentCount || 0;
+      commBtn.querySelector('.cc').textContent = n > 0 ? `${n} commentaire${n>1?'s':''}` : 'Commenter';
+    }
+  } catch(e) {}
+}
+
+async function toggleLike(pid, btn) {
+  const liked = getLiked().includes(pid);
+  const delta = liked ? -1 : 1;
+  const lc = btn.querySelector('.lc');
+  lc.textContent = Math.max(0, (parseInt(lc.textContent)||0) + delta);
+  if (liked) { setLiked(getLiked().filter(x=>x!==pid)); btn.classList.remove('liked'); }
+  else        { setLiked([...getLiked(), pid]);          btn.classList.add('liked'); }
+  try {
+    await db.collection('places').doc(pid).set(
+      { likeCount: firebase.firestore.FieldValue.increment(delta) }, { merge: true }
+    );
+  } catch(e) {}
+}
+
+async function toggleComments(pid, btn) {
+  const section = document.getElementById('cs-'+pid);
+  const open = section.style.display !== 'none';
+  section.style.display = open ? 'none' : 'block';
+  btn.classList.toggle('open', !open);
+  if (!open) loadComments(pid);
+}
+
+async function loadComments(pid) {
+  const list = document.getElementById('cl-'+pid);
+  list.innerHTML = '<div class="cloading">Chargement…</div>';
+  try {
+    const snap = await db.collection('places').doc(pid).collection('comments')
+      .orderBy('ts','asc').get();
+    if (snap.empty) {
+      list.innerHTML = '<div class="cloading">Pas encore de commentaire — sois le premier !</div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const date = d.ts ? new Date(d.ts.toMillis()).toLocaleDateString('fr-FR') : '';
+      return `<div class="comment-item">
+        <span class="ci-name">${d.name}</span>${date ? `<span class="ci-date">${date}</span>` : ''}
+        <p class="ci-text">${d.text}</p>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML = '<div class="cloading">Erreur de chargement.</div>'; }
+}
+
+async function submitComment(pid) {
+  const nameEl = document.getElementById('cf-name-'+pid);
+  const textEl = document.getElementById('cf-text-'+pid);
+  const btn    = document.querySelector(`#cs-${pid} .btn-send`);
+  nameEl.classList.toggle('err', !nameEl.value.trim());
+  textEl.classList.toggle('err', !textEl.value.trim());
+  if (!nameEl.value.trim() || !textEl.value.trim()) return;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await db.collection('places').doc(pid).collection('comments').add({
+      name: nameEl.value.trim(), text: textEl.value.trim(),
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('places').doc(pid).set(
+      { commentCount: firebase.firestore.FieldValue.increment(1) }, { merge: true }
+    );
+    nameEl.value = ''; textEl.value = '';
+    await loadComments(pid);
+    const commBtn = document.querySelector(`.btn-comments[data-pid="${pid}"]`);
+    if (commBtn) {
+      const n = (parseInt(commBtn.querySelector('.cc').textContent)||0) + 1;
+      commBtn.querySelector('.cc').textContent = `${n} commentaire${n>1?'s':''}`;
+    }
+  } catch(e) { alert('Erreur lors de l\'envoi. Réessaye !'); }
+  btn.disabled = false; btn.textContent = 'Envoyer ↗';
+}
+
+const socialObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { loadCounts(e.target.dataset.spid); socialObs.unobserve(e.target); }
+  });
+}, { threshold: 0.1 });
+
+function observeSocialCards() {
+  document.querySelectorAll('[data-spid]').forEach(el => socialObs.observe(el));
+}
 
 render();
 
