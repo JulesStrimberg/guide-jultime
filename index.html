@@ -875,7 +875,7 @@
       <input class="ai-input" id="ai-input" type="text"
         placeholder="Décris ce que tu cherches… ex : meilleur café tranquille à Milan le matin"
         maxlength="200" autocomplete="off">
-      <button class="ai-btn" id="ai-btn" onclick="askAI()">Demander à Jules IA →</button>
+      <button class="ai-btn" id="ai-btn" onclick="askAI()">Demander à Luc-IA →</button>
     </div>
     <div class="ai-result" id="ai-result" style="display:none"></div>
   </div>
@@ -2013,7 +2013,7 @@ function sheetRowToPlace(hdr, r) {
 })();
 
 // ══════════════════════════════════════════════════════
-//  JULES IA — recherche en langage naturel (Gemini)
+//  LUC-IA — recherche en langage naturel (Gemini)
 // ══════════════════════════════════════════════════════
 const GEMINI_KEY = 'AQ.Ab8RN6KygGSUqHXYhmfJnEKOzFc4k_dE5m_V2DoNMGMaysdVMA';
 
@@ -2043,12 +2043,12 @@ async function askAI() {
   box.style.display = 'block';
   box.innerHTML = `<div class="ai-loading">
     <div class="ai-dots"><span></span><span></span><span></span></div>
-    Jules IA réfléchit…
+    Luc-IA réfléchit…
   </div>`;
 
   document.querySelectorAll('.pcard.ai-highlight').forEach(c => c.classList.remove('ai-highlight'));
 
-  const systemPrompt = `Tu es l'assistant du Guide Jultime, un guide culinaire personnel couvrant Milan, Paris et Lyon.
+  const systemPrompt = `Tu es Luc-IA, l'assistante du Guide Jultime — celle qui a toujours toutes les infos sur les meilleures adresses de Milan, Paris et Lyon.
 Voici la liste complète des adresses disponibles (une par ligne) :
 ${buildPlacesContext()}
 
@@ -2100,7 +2100,7 @@ function renderAIResult(recs) {
   const cityLabel = { milan: 'Milan 🇮🇹', paris: 'Paris 🇫🇷', lyon: 'Lyon 🇫🇷' };
 
   const html = `
-    <div class="ai-result-head">✨ Recommandations Jules IA</div>
+    <div class="ai-result-head">✨ Recommandations Luc-IA</div>
     ${recs.map((r, i) => {
       const pid = (r.city + '_' + r.name).toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
