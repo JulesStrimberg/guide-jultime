@@ -2076,15 +2076,19 @@ Utilise uniquement des noms qui apparaissent exactement dans la liste. Ne modifi
         })
       }
     );
-    if (!res.ok) throw new Error('API error ' + res.status);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const msg = errData?.error?.message || 'HTTP ' + res.status;
+      throw new Error(msg);
+    }
     const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON');
+    if (!jsonMatch) throw new Error('No JSON in response');
     const parsed = JSON.parse(jsonMatch[0]);
     renderAIResult(parsed.recs || []);
   } catch(e) {
-    box.innerHTML = '<div class="ai-loading">😕 Une erreur est survenue, réessaie dans un instant.</div>';
+    box.innerHTML = `<div class="ai-loading">😕 Erreur : ${e.message}</div>`;
   } finally {
     btn.disabled = false;
   }
