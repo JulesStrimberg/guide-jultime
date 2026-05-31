@@ -403,6 +403,85 @@
       color: #9CA3AF;
     }
 
+    /* ── AI SEARCH ──────────────────────────────────── */
+    .ai-wrap {
+      margin-bottom: 1.4rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .ai-bar {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--dark); border-radius: 14px;
+      padding: 0.55rem 0.55rem 0.55rem 1rem;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.18);
+    }
+    .ai-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .ai-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: white; font-family: 'Nunito', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+    }
+    .ai-input::placeholder { color: rgba(255,255,255,0.38); }
+    .ai-btn {
+      background: var(--yellow); color: var(--dark);
+      border: none; border-radius: 10px;
+      padding: 0.45rem 1rem; font-size: 0.8rem; font-weight: 800;
+      cursor: pointer; font-family: 'Nunito', sans-serif;
+      transition: opacity 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .ai-btn:hover { opacity: 0.85; }
+    .ai-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ai-result {
+      background: white; border: 2.5px solid var(--dark);
+      border-radius: 14px; padding: 1rem 1.15rem;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.10);
+      font-size: 0.85rem; line-height: 1.6;
+      animation: cardIn 0.25s ease backwards;
+    }
+    .ai-result-head {
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #9CA3AF; margin-bottom: 0.6rem;
+    }
+    .ai-rec {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      padding: 0.55rem 0; border-bottom: 1px solid #F3F4F6;
+    }
+    .ai-rec:last-child { border-bottom: none; padding-bottom: 0; }
+    .ai-rec-num {
+      background: var(--dark); color: var(--yellow);
+      border-radius: 50%; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .ai-rec-body { flex: 1; }
+    .ai-rec-name { font-weight: 800; font-size: 0.88rem; color: var(--dark); }
+    .ai-rec-city { font-size: 0.68rem; font-weight: 700; color: #9CA3AF; margin-left: 6px; }
+    .ai-rec-why { font-size: 0.8rem; color: #4B5563; margin-top: 2px; }
+    .ai-rec-scroll {
+      font-size: 0.7rem; font-weight: 700; color: var(--orange);
+      cursor: pointer; text-decoration: underline; margin-top: 3px;
+      display: inline-block;
+    }
+    .ai-rec-scroll:hover { color: var(--red); }
+    .ai-loading {
+      display: flex; align-items: center; gap: 0.5rem;
+      color: #9CA3AF; font-size: 0.82rem; font-weight: 600; padding: 0.2rem 0;
+    }
+    .ai-dots span {
+      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: #9CA3AF; margin: 0 1px;
+      animation: aiDot 1.2s infinite ease-in-out;
+    }
+    .ai-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes aiDot {
+      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .pcard.ai-highlight {
+      outline: 3px solid var(--yellow);
+      box-shadow: 0 0 0 6px rgba(255,210,63,0.25), var(--shadow);
+    }
+
     /* Place cards grid */
     .cards-grid {
       display: grid;
@@ -788,6 +867,17 @@
       <button class="fbtn" data-filter="price" data-value="€€€">€€€</button>
     </div>
     <span class="res-count" id="res-count"></span>
+  </div>
+
+  <div class="ai-wrap">
+    <div class="ai-bar">
+      <span class="ai-icon">✨</span>
+      <input class="ai-input" id="ai-input" type="text"
+        placeholder="Décris ce que tu cherches… ex : meilleur café tranquille à Milan le matin"
+        maxlength="200" autocomplete="off">
+      <button class="ai-btn" id="ai-btn" onclick="askAI()">Demander à Jules IA →</button>
+    </div>
+    <div class="ai-result" id="ai-result" style="display:none"></div>
   </div>
 
   <div class="cards-grid" id="cards-grid">
@@ -1921,6 +2011,142 @@ function sheetRowToPlace(hdr, r) {
     render();
   } catch (e) { /* silently use hardcoded fallback */ }
 })();
+
+// ══════════════════════════════════════════════════════
+//  JULES IA — recherche en langage naturel (Gemini)
+// ══════════════════════════════════════════════════════
+const GEMINI_KEY = 'COLLE_TA_CLE_ICI';
+
+document.getElementById('ai-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') askAI();
+});
+
+function buildPlacesContext() {
+  return places.map(p =>
+    `[${p.city.toUpperCase()}] ${p.name} | ${p.type} | ${p.price} | ${p.rating}★ | ${p.desc} | Tags: ${p.tags.join(', ')}`
+  ).join('\n');
+}
+
+async function askAI() {
+  const input = document.getElementById('ai-input');
+  const btn   = document.getElementById('ai-btn');
+  const box   = document.getElementById('ai-result');
+  const query = input.value.trim();
+  if (!query) { input.focus(); return; }
+  if (GEMINI_KEY === 'COLLE_TA_CLE_ICI') {
+    box.style.display = 'block';
+    box.innerHTML = '<div class="ai-loading">⚠️ Clé API Gemini non configurée.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  box.style.display = 'block';
+  box.innerHTML = `<div class="ai-loading">
+    <div class="ai-dots"><span></span><span></span><span></span></div>
+    Jules IA réfléchit…
+  </div>`;
+
+  document.querySelectorAll('.pcard.ai-highlight').forEach(c => c.classList.remove('ai-highlight'));
+
+  const systemPrompt = `Tu es l'assistant du Guide Jultime, un guide culinaire personnel couvrant Milan, Paris et Lyon.
+Voici la liste complète des adresses disponibles (une par ligne) :
+${buildPlacesContext()}
+
+L'utilisateur cherche : "${query}"
+
+Recommande exactement 2 ou 3 adresses de la liste qui correspondent le mieux à sa recherche.
+Réponds UNIQUEMENT en JSON valide, sans texte autour, au format :
+{
+  "recs": [
+    { "name": "Nom exact de l'adresse", "city": "milan|paris|lyon", "why": "Courte explication chaleureuse en français (1-2 phrases max)" },
+    ...
+  ]
+}
+Utilise uniquement des noms qui apparaissent exactement dans la liste. Ne modifie pas les noms.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 512 }
+        })
+      }
+    );
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON');
+    const parsed = JSON.parse(jsonMatch[0]);
+    renderAIResult(parsed.recs || []);
+  } catch(e) {
+    box.innerHTML = '<div class="ai-loading">😕 Une erreur est survenue, réessaie dans un instant.</div>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderAIResult(recs) {
+  const box = document.getElementById('ai-result');
+  if (!recs.length) {
+    box.innerHTML = '<div class="ai-loading">😕 Aucune adresse trouvée pour cette recherche.</div>';
+    return;
+  }
+
+  const cityLabel = { milan: 'Milan 🇮🇹', paris: 'Paris 🇫🇷', lyon: 'Lyon 🇫🇷' };
+
+  const html = `
+    <div class="ai-result-head">✨ Recommandations Jules IA</div>
+    ${recs.map((r, i) => {
+      const pid = (r.city + '_' + r.name).toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80);
+      return `<div class="ai-rec">
+        <div class="ai-rec-num">${i + 1}</div>
+        <div class="ai-rec-body">
+          <div>
+            <span class="ai-rec-name">${r.name}</span>
+            <span class="ai-rec-city">${cityLabel[r.city] || r.city}</span>
+          </div>
+          <div class="ai-rec-why">${r.why}</div>
+          <span class="ai-rec-scroll" onclick="scrollToCard('${pid}')">Voir la carte →</span>
+        </div>
+      </div>`;
+    }).join('')}`;
+
+  box.innerHTML = html;
+
+  recs.forEach(r => {
+    const pid = (r.city + '_' + r.name).toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80);
+    highlightCard(pid);
+  });
+}
+
+function highlightCard(pid) {
+  const card = document.querySelector(`[data-spid="${pid}"]`);
+  if (card) card.classList.add('ai-highlight');
+}
+
+function scrollToCard(pid) {
+  act.city = 'all'; act.type = 'all'; act.price = 'all';
+  document.querySelectorAll('.fbtn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === 'all');
+  });
+  render();
+  setTimeout(() => {
+    const card = document.querySelector(`[data-spid="${pid}"]`);
+    if (card) {
+      card.classList.add('ai-highlight');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 80);
+}
 </script>
 </body>
 </html>
