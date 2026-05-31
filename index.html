@@ -483,6 +483,7 @@
     .cp-lyon  { background:#FEF3C7; color:#78350F; border-color:#FDE68A; }
 
     .tpill { font-size: 0.58rem; font-weight: 700; color: #9CA3AF; }
+    .multi-tag { font-size: 0.58rem; font-weight: 700; color: #7C3AED; background: #EDE9FE; border-radius: 4px; padding: 2px 6px; }
 
     /* badge */
     .pbadge {
@@ -1559,6 +1560,7 @@ function render() {
           <div class="pmeta">
             <span class="cpill cp-${p.city}">${cityLabel}</span>
             <span class="tpill">${typeLabel}</span>
+            ${['y','Y','oui','yes'].includes(p.autres_adresses) ? '<span class="multi-tag">📍 Plusieurs adresses</span>' : ''}
           </div>
         </div>
         ${p.badge ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
@@ -1734,7 +1736,8 @@ function sheetRowToPlace(hdr, r) {
     address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
     badge: o.badge || null, mapsLink: o.mapsLink, icon: o.icon,
-    ic: IC_MAP[o.type] || 'ic-restaurant'
+    ic: IC_MAP[o.type] || 'ic-restaurant',
+    autres_adresses: o.autres_adresses || ''
   };
 }
 
