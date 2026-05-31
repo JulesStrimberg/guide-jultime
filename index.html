@@ -2013,9 +2013,9 @@ function sheetRowToPlace(hdr, r) {
 })();
 
 // ══════════════════════════════════════════════════════
-//  LUC-IA — recherche en langage naturel (Gemini)
+//  LUC-IA — recherche en langage naturel (Groq / LLaMA)
 // ══════════════════════════════════════════════════════
-const GEMINI_KEY = 'AQ.Ab8RN6KygGSUqHXYhmfJnEKOzFc4k_dE5m_V2DoNMGMaysdVMA';
+const GROQ_KEY = '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';
 
 document.getElementById('ai-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') askAI();
@@ -2033,9 +2033,9 @@ async function askAI() {
   const box   = document.getElementById('ai-result');
   const query = input.value.trim();
   if (!query) { input.focus(); return; }
-  if (GEMINI_KEY === 'COLLE_TA_CLE_ICI') {
+  if (!GROQ_KEY) {
     box.style.display = 'block';
-    box.innerHTML = '<div class="ai-loading">⚠️ Clé API Gemini non configurée.</div>';
+    box.innerHTML = '<div class="ai-loading">⚠️ Clé API non configurée.</div>';
     return;
   }
 
@@ -2065,28 +2065,26 @@ Réponds UNIQUEMENT en JSON valide, sans texte autour, au format :
 Utilise uniquement des noms qui apparaissent exactement dans la liste. Ne modifie pas les noms.`;
 
   try {
-    const isOAuth = GEMINI_KEY.startsWith('AQ.') || GEMINI_KEY.startsWith('ya29.');
-    const url = isOAuth
-      ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
-      : `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: isOAuth
-          ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` }
-          : { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 512 }
-        })
-      }
-    );
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: systemPrompt }],
+        temperature: 0.4,
+        max_tokens: 512
+      })
+    });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       const msg = errData?.error?.message || 'HTTP ' + res.status;
       throw new Error(msg);
     }
     const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const raw = data.choices?.[0]?.message?.content || '';
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON in response');
     const parsed = JSON.parse(jsonMatch[0]);
