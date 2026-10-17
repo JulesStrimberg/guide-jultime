@@ -657,6 +657,8 @@
       gap: 0.5rem;
     }
     .stars { font-size: 0.72rem; flex-shrink: 0; }
+    .stars-none { font-size: 0.62rem; font-weight: 800; color: #9CA3AF; }
+    .pdesc-soon { color: #9CA3AF; }
     .pprice {
       font-family: 'Fredoka', sans-serif;
       font-size: 0.9rem; font-weight: 600;
@@ -2314,11 +2316,11 @@ function render() {
         ${blbl ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
       </div>
       <div class="pcard-body">
-        <p class="pdesc">${p.desc}</p>
-        <div class="ptags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
+        ${p.desc ? `<p class="pdesc">${p.desc}</p>` : '<p class="pdesc pdesc-soon">Avis à venir ✍️</p>'}
+        ${p.tags.length ? `<div class="ptags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>` : ''}
       </div>
       <div class="pcard-foot">
-        <span class="stars">${starsHtml(p.rating)}</span>
+        ${p.rating ? `<span class="stars">${starsHtml(p.rating)}</span>` : '<span class="stars stars-none">Pas encore noté</span>'}
         <span class="pprice">${p.price}</span>
         <span class="paddr">📍 ${p.address}</span>
         <a href="${p.mapsLink}" target="_blank" rel="noopener" class="btn-go">Maps →</a>
