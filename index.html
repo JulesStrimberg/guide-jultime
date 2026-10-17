@@ -397,6 +397,20 @@
     .fbtn[data-value="boulangerie"].active { background: #B45309; border-color: #B45309; }
     .fbtn[data-value="sortie"].active      { background: #0891B2; border-color: #0891B2; }
 
+    .fg-search { flex: 1 1 100%; width: 100%; padding-left: 0 !important; border-left: none !important; gap: 0.6rem; }
+    .fsearch {
+      flex: 1 1 240px; min-width: 0;
+      padding: 0.5rem 0.9rem; border-radius: 100px;
+      border: 2px solid #E5E7EB; outline: none;
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.8rem; color: var(--dark);
+    }
+    .fsearch:focus, .fsort:focus { border-color: var(--dark); }
+    .fsort {
+      padding: 0.45rem 0.8rem; border-radius: 100px;
+      border: 2px solid #E5E7EB; background: white; outline: none; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.75rem; color: var(--dark);
+    }
+
     .res-count {
       margin-left: auto;
       font-weight: 800; font-size: 0.72rem;
@@ -416,7 +430,7 @@
     }
     .ai-icon { font-size: 1.1rem; flex-shrink: 0; }
     .ai-input {
-      flex: 1; background: transparent; border: none; outline: none;
+      flex: 1; min-width: 0; background: transparent; border: none; outline: none;
       color: white; font-family: 'Nunito', sans-serif;
       font-size: 0.88rem; font-weight: 600;
     }
@@ -879,6 +893,17 @@
   </div>
 
   <div class="filters-bar reveal">
+    <div class="fg fg-search">
+      <input type="search" class="fsearch" id="fsearch" placeholder="🔎 Nom, quartier, envie… (navigli, brunch)" aria-label="Rechercher une adresse">
+      <select class="fsort" id="fsort" aria-label="Trier les adresses">
+        <option value="default">Tri : par défaut</option>
+        <option value="badge">Badges d'abord</option>
+        <option value="rating">Mieux notées</option>
+        <option value="price-asc">Prix croissant</option>
+        <option value="price-desc">Prix décroissant</option>
+        <option value="name">A → Z</option>
+      </select>
+    </div>
     <div class="fg">
       <span class="fg-lbl">Ville</span>
       <button class="fbtn active" data-filter="city" data-value="all">Toutes</button>
@@ -1701,7 +1726,7 @@ const BADGES = {
 // ══════════════════════════════════════════════════════
 //  FILTER STATE
 // ══════════════════════════════════════════════════════
-const act = { city:'all', type:'all', price:'all' };
+const act = { city:'all', type:'all', price:'all', q:'', sort:'default' };
 
 // Catégorie « Bientôt peut-être dans ce guide » (liste Google Maps « À visiter ») :
 // repérée par badge = "bientot" ; ces lieux restent hors du guide, des compteurs,
@@ -1709,10 +1734,27 @@ const act = { city:'all', type:'all', price:'all' };
 const SOON_BADGES = ['bientot', 'bientôt', 'soon'];
 const isSoon = p => SOON_BADGES.includes(String(p.badge || '').trim().toLowerCase());
 const guidePlaces = () => places.filter(p => !isSoon(p));
+// Recherche texte (insensible aux accents/majuscules) + tri
+const fold = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const matchesSearch = p => {
+  const words = fold(act.q).split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const hay = fold([p.name, p.type, p.address, p.desc, p.tags.join(' '), cityLabelOf(p.city)].join(' '));
+  return words.every(w => hay.includes(w));
+};
 const matchesFilters = p =>
   (act.city  === 'all' || p.city  === act.city)  &&
   (act.type  === 'all' || p.type  === act.type)  &&
-  (act.price === 'all' || p.price === act.price);
+  (act.price === 'all' || p.price === act.price) &&
+  matchesSearch(p);
+const BADGE_RANK = { must: 0, fav: 1, gem: 2 };
+const SORTS = {
+  badge:        (a, b) => (BADGE_RANK[a.badge] ?? 9) - (BADGE_RANK[b.badge] ?? 9),
+  rating:       (a, b) => b.rating - a.rating,
+  'price-asc':  (a, b) => (a.price || '').length - (b.price || '').length,
+  'price-desc': (a, b) => (b.price || '').length - (a.price || '').length,
+  name:         (a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+};
 const CITY_LABEL = { milan:'Milan', paris:'Paris', lyon:'Lyon' };
 const cityLabelOf = c => CITY_LABEL[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, ch =>
@@ -1756,6 +1798,7 @@ function render() {
 
   const guide = guidePlaces();
   const filtered = guide.filter(matchesFilters);
+  if (SORTS[act.sort]) filtered.sort(SORTS[act.sort]);
 
   document.getElementById('res-count').textContent =
     filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '');
@@ -1827,6 +1870,13 @@ document.querySelectorAll('.fbtn').forEach(btn => {
     render();
   });
 });
+
+let searchTimer;
+document.getElementById('fsearch').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { act.q = e.target.value; render(); }, 150);
+});
+document.getElementById('fsort').addEventListener('change', e => { act.sort = e.target.value; render(); });
 
 // ══════════════════════════════════════════════════════
 //  LEAFLET MAPS
