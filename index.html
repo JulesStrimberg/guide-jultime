@@ -674,6 +674,44 @@
       display: none;
     }
 
+    /* ── BIENTÔT PEUT-ÊTRE (liste « À visiter ») ─────── */
+    .soon-section { padding-top: 1rem; }
+    .soon-count {
+      display: inline-block; margin-top: 0.6rem;
+      font-size: 0.75rem; font-weight: 800; color: #6B7280;
+      background: #F3F4F6; border-radius: 100px; padding: 0.2rem 0.7rem;
+    }
+    .soon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.8rem;
+    }
+    .scard {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: white; color: var(--dark); text-decoration: none;
+      border: 2px dashed #CBD5E1; border-radius: var(--rsm);
+      padding: 0.7rem 0.85rem;
+      transition: border-color 0.15s, transform 0.15s;
+      min-width: 0;
+    }
+    .scard:hover { border-color: var(--dark); transform: translateY(-2px); }
+    .scard .picon { width: 40px; height: 40px; font-size: 1.15rem; border-radius: 10px; opacity: 0.85; }
+    .scard-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+    .scard-name {
+      font-family: 'Fredoka', sans-serif; font-size: 1rem; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .scard-addr {
+      font-size: 0.63rem; font-weight: 600; color: #9CA3AF;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .scard-go { font-size: 0.62rem; font-weight: 800; color: #6B7280; flex-shrink: 0; }
+    .cp-other { background:#F3F4F6; color:#374151; border-color:#D1D5DB; }
+    .soon-empty {
+      grid-column: 1/-1; text-align: center; padding: 1.5rem;
+      font-weight: 700; color: #9CA3AF;
+    }
+
     /* ── FOOTER ───────────────────────────────────────── */
     footer {
       background: var(--dark);
@@ -883,6 +921,20 @@
   <div class="cards-grid" id="cards-grid">
     <p class="no-res" id="no-res">😢 Aucune adresse pour ces filtres...</p>
   </div>
+</div>
+
+<!-- ╔═══════════════════════════════╗ -->
+<!-- ║  BIENTÔT PEUT-ÊTRE            ║ -->
+<!-- ╚═══════════════════════════════╝ -->
+<!-- Lieux de la liste Google Maps « À visiter » : badge = "bientot"
+     dans le Sheet / places.csv. Pas encore testés → ni note ni avis. -->
+<div id="bientot" class="section soon-section" style="display:none">
+  <div class="sec-head">
+    <h2>Bientôt peut-être dans ce guide 👀</h2>
+    <p>Ma liste « À visiter » — pas encore testé, donc pas de note ni d'avis</p>
+    <span class="soon-count" id="soon-count"></span>
+  </div>
+  <div class="soon-grid" id="soon-grid"></div>
 </div>
 
 <!-- ╔═══════════════════════════════╗ -->
@@ -1651,34 +1703,79 @@ const BADGES = {
 // ══════════════════════════════════════════════════════
 const act = { city:'all', type:'all', price:'all' };
 
+// Catégorie « Bientôt peut-être dans ce guide » (liste Google Maps « À visiter ») :
+// repérée par badge = "bientot" ; ces lieux restent hors du guide, des compteurs,
+// des cartes Leaflet et de Luc-IA.
+const SOON_BADGES = ['bientot', 'bientôt', 'soon'];
+const isSoon = p => SOON_BADGES.includes(String(p.badge || '').trim().toLowerCase());
+const guidePlaces = () => places.filter(p => !isSoon(p));
+const matchesFilters = p =>
+  (act.city  === 'all' || p.city  === act.city)  &&
+  (act.type  === 'all' || p.type  === act.type)  &&
+  (act.price === 'all' || p.price === act.price);
+const CITY_LABEL = { milan:'Milan', paris:'Paris', lyon:'Lyon' };
+const cityLabelOf = c => CITY_LABEL[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+
+function renderSoon() {
+  const section = document.getElementById('bientot');
+  const grid = document.getElementById('soon-grid');
+  const all = places.filter(isSoon);
+  section.style.display = all.length ? '' : 'none';
+  if (!all.length) return;
+
+  const shown = all.filter(matchesFilters);
+  document.getElementById('soon-count').textContent =
+    all.length + ' lieu' + (all.length > 1 ? 'x' : '') + ' en attente';
+  grid.innerHTML = shown.length ? shown.map(p => {
+    const known = CITY_LABEL[p.city];
+    const meta = [p.type ? p.type.charAt(0).toUpperCase() + p.type.slice(1) : '', p.price]
+      .filter(Boolean).join(' · ');
+    const link = /^https?:\/\//.test(p.mapsLink || '') ? p.mapsLink
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + (p.address || cityLabelOf(p.city)));
+    return `
+      <a class="scard" href="${esc(link)}" target="_blank" rel="noopener" data-type="${esc(p.type)}">
+        <span class="picon ${esc(p.ic || 'ic-restaurant')}">${esc(p.icon || '📍')}</span>
+        <span class="scard-main">
+          <span class="scard-name">${esc(p.name)}</span>
+          <span class="pmeta">
+            <span class="cpill ${known ? 'cp-' + p.city : 'cp-other'}">${esc(cityLabelOf(p.city))}</span>
+            ${meta ? `<span class="tpill">${esc(meta)}</span>` : ''}
+          </span>
+          ${p.address ? `<span class="scard-addr">📍 ${esc(p.address)}</span>` : ''}
+        </span>
+        <span class="scard-go">Maps →</span>
+      </a>`;
+  }).join('') : '<p class="soon-empty">Rien en attente pour ces filtres.</p>';
+}
+
 function render() {
   const grid = document.getElementById('cards-grid');
   grid.querySelectorAll('.pcard').forEach(c => c.remove());
 
-  const filtered = places.filter(p =>
-    (act.city  === 'all' || p.city  === act.city)  &&
-    (act.type  === 'all' || p.type  === act.type)  &&
-    (act.price === 'all' || p.price === act.price)
-  );
+  const guide = guidePlaces();
+  const filtered = guide.filter(matchesFilters);
 
   document.getElementById('res-count').textContent =
     filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '');
-  document.getElementById('stat-total').textContent = places.length;
+  document.getElementById('stat-total').textContent = guide.length;
   document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
 
   ['milan','paris','lyon'].forEach(c => {
-    const n = places.filter(p => p.city === c).length;
+    const n = guide.filter(p => p.city === c).length;
     document.getElementById('count-'+c).textContent = n + ' adresse' + (n>1?'s':'');
   });
+  renderSoon();
 
   filtered.forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'pcard';
     card.setAttribute('data-type', p.type);
     card.style.animationDelay = `${i*0.04}s`;
-    const cityLabel = {milan:'Milan',paris:'Paris',lyon:'Lyon'}[p.city];
+    const cityLabel = cityLabelOf(p.city);
     const typeLabel = p.type.charAt(0).toUpperCase()+p.type.slice(1);
-    const [bcls, blbl] = p.badge ? BADGES[p.badge] : ['',''];
+    const [bcls, blbl] = BADGES[p.badge] || ['',''];
     const pid = (p.city+'_'+p.name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,80);
     card.setAttribute('data-spid', pid);
     card.innerHTML = `
@@ -1692,7 +1789,7 @@ function render() {
             ${['y','Y','oui','yes'].includes(p.autres_adresses) ? '<span class="multi-tag">📍 Plusieurs adresses</span>' : ''}
           </div>
         </div>
-        ${p.badge ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
+        ${blbl ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
       </div>
       <div class="pcard-body">
         <p class="pdesc">${p.desc}</p>
@@ -1765,7 +1862,7 @@ async function initLeafletMap(city) {
   }).addTo(map);
   leafletMaps[city] = map;
 
-  const cityPlaces = places.filter(p => p.city === city);
+  const cityPlaces = guidePlaces().filter(p => p.city === city);
   const statusEl = document.getElementById('mstatus-' + city);
   const uncachedTotal = cityPlaces.filter(p => !geoCache[p.address]).length;
   let uncachedDone = 0;
@@ -2022,7 +2119,7 @@ document.getElementById('ai-input').addEventListener('keydown', e => {
 });
 
 function buildPlacesContext() {
-  return places.map(p =>
+  return guidePlaces().map(p =>
     `[${p.city.toUpperCase()}] ${p.name} | ${p.type} | ${p.price} | ${p.rating}★ | ${p.desc} | Tags: ${p.tags.join(', ')}`
   ).join('\n');
 }
