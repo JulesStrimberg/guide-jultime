@@ -2229,11 +2229,19 @@ function render() {
 
   const guide = guidePlaces();
   const soon = places.filter(isSoon);
-  const filtered = (act.city === 'bientot' ? soon : guide).filter(matchesFilters);
-  if (SORTS[act.sort]) filtered.sort(SORTS[act.sort]);
+  // « Toutes » = les 3 villes + Bientôt (les lieux pas encore testés à la fin)
+  const pick = list => {
+    const l = list.filter(matchesFilters);
+    if (SORTS[act.sort]) l.sort(SORTS[act.sort]);
+    return l;
+  };
+  const tested  = act.city === 'bientot' ? [] : pick(guide);
+  const pending = act.city === 'bientot' || act.city === 'all' ? pick(soon) : [];
+  const filtered = [...tested, ...pending];
 
   document.getElementById('res-count').textContent =
-    filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '');
+    filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '') +
+    (tested.length && pending.length ? ` (dont ${pending.length} bientôt)` : '');
   document.getElementById('stat-total').textContent = guide.length;
   document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
 
