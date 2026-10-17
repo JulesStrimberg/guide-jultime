@@ -2080,11 +2080,13 @@ function parseSheetCSV(text) {
   return rows;
 }
 
-// Un seul badge par adresse : on garde le premier reconnu (ex. "gem|must" → gem)
+// Un seul badge par adresse : on garde le premier reconnu (ex. "gem|must" → gem ;
+// "bientôt peut-être" → bientot, cf. isSoon)
 const BADGE_ALIASES = { must:'must', incontournable:'must', fav:'fav', 'coup de coeur':'fav', 'coup de cœur':'fav', gem:'gem', 'pépite':'gem', pepite:'gem' };
 function firstBadge(raw) {
   for (const part of (raw || '').toLowerCase().split(/[|,;\/+]/)) {
-    const k = BADGE_ALIASES[part.replace(/[^\p{L}\s]/gu, '').trim()];
+    const w = part.replace(/[^\p{L}\s]/gu, '').trim();
+    const k = BADGE_ALIASES[w] || (/^bient[oô]t|^soon/.test(w) ? 'bientot' : null);
     if (k) return k;
   }
   return null;
