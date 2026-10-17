@@ -2777,13 +2777,16 @@ function fillMissingCoords(list) {
   });
 }
 
+// Accepte « 45.4562 » comme « 45,4562 » (Sheet en français)
+const parseCoord = v => parseFloat(String(v ?? '').trim().replace(',', '.'));
+
 function sheetRowToPlace(hdr, r) {
   const o = {};
   hdr.forEach((h, i) => o[h.trim()] = (r[i] || '').trim());
   return {
     city: o.city, name: o.name, type: o.type, price: o.price,
     rating: parseFloat(o.rating) || 0,
-    address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
+    address: o.address, lat: parseCoord(o.lat), lng: parseCoord(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
     badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: firstIcon(o.icon),
     ic: IC_MAP[o.type] || 'ic-restaurant',
