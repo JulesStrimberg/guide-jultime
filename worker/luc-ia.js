@@ -58,7 +58,7 @@ export default {
         temperature: 0.4,
         // gpt-oss raisonne avant de répondre : effort bas et marge de tokens pour le JSON final
         reasoning_effort: 'low',
-        max_tokens: 2048
+        max_tokens: 1024
       })
     });
     if (!res.ok) {
@@ -85,12 +85,31 @@ async function loadPlaces() {
     .filter(p => p.city && p.name && !/bient|soon/i.test(p.badge || ''));
 }
 
+// Offre gratuite Groq : 8000 tokens/minute (prompt + max_tokens). On n'envoie donc
+// que les adresses les plus pertinentes, en lignes compactes.
+const MAX_PLACES = 60;
+const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const CITY_WORDS = { milan: ['milan', 'milano'], paris: ['paris'], lyon: ['lyon'] };
+
+function selectPlaces(places, query) {
+  const q = fold(query);
+  const cities = Object.keys(CITY_WORDS).filter(c => CITY_WORDS[c].some(w => q.includes(w)));
+  let pool = cities.length ? places.filter(p => cities.includes(p.city)) : places;
+  if (pool.length <= MAX_PLACES) return pool;
+  const words = q.split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !Object.values(CITY_WORDS).flat().includes(w));
+  const score = p => {
+    const hay = fold([p.name, p.type, p.tags, p.desc].join(' '));
+    return words.reduce((n, w) => n + (hay.includes(w) ? 1 : 0), 0) + (Number(p.rating) || 0) / 10;
+  };
+  return pool.map(p => [score(p), p]).sort((a, b) => b[0] - a[0]).slice(0, MAX_PLACES).map(x => x[1]);
+}
+
 function buildPrompt(places, query) {
-  const list = places.map(p =>
-    `[${p.city.toUpperCase()}] ${p.name} | ${p.type} | ${p.price} | ${p.rating || '?'}★ | ${p.desc} | Tags: ${(p.tags || '').split('|').join(', ')}`
+  const list = selectPlaces(places, query).map(p =>
+    `${p.city}|${p.name}|${p.type}|${p.price}|${p.rating || '?'}★|${(p.tags || '').replace(/\|/g, ',')}|${(p.desc || '').slice(0, 90)}`
   ).join('\n');
   return `Tu es Luc-IA, l'assistante du Guide Jultime — celle qui a toujours toutes les infos sur les meilleures adresses de Milan, Paris et Lyon.
-Voici la liste complète des adresses disponibles (une par ligne) :
+Adresses disponibles (ville|nom|type|prix|note|tags|avis) :
 ${list}
 
 L'utilisateur cherche : "${query.replace(/"/g, "'")}"
