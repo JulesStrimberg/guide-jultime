@@ -2187,6 +2187,13 @@ let places = [
     mapsLink:"https://www.google.com/maps/place/Archibon+Wine+Bar+%2F+Wine+Tasting/data=!4m2!3m1!1s0x47e66e15f7c95555:0x89425ec516ffaeaa", icon:"🍷", ic:"ic-bar", autres_adresses:"" }
 ];
 
+// Une seule icône par adresse : on garde le premier emoji (ex. "☕🥐" → "☕")
+function firstIcon(raw) {
+  const m = String(raw || '').match(/\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*/u);
+  return m ? m[0] : (raw || '');
+}
+places.forEach(p => p.icon = firstIcon(p.icon));
+
 // ══════════════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════════════
@@ -2634,7 +2641,7 @@ function sheetRowToPlace(hdr, r) {
     rating: parseFloat(o.rating) || 0,
     address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
-    badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: o.icon,
+    badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: firstIcon(o.icon),
     ic: IC_MAP[o.type] || 'ic-restaurant',
     autres_adresses: o.autres_adresses || ''
   };
