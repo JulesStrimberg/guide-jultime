@@ -2764,13 +2764,29 @@ function firstBadge(raw) {
   return null;
 }
 
+// Si le Sheet n'a pas (ou plus) de colonnes lat/lng, on reprend les coordonnées
+// connues : liste intégrée au site (même ville + nom), sinon géocodage déjà en cache.
+const hasLatLng = p => Number.isFinite(p.lat) && Number.isFinite(p.lng) && (p.lat || p.lng);
+const coordKey = p => (p.city + '|' + p.name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9|]+/g, '');
+function fillMissingCoords(list) {
+  const known = new Map(places.filter(hasLatLng).map(p => [coordKey(p), [p.lat, p.lng]]));
+  list.forEach(p => {
+    if (hasLatLng(p)) return;
+    const pos = known.get(coordKey(p)) || geoCache[p.address];
+    if (pos) { p.lat = +pos[0]; p.lng = +pos[1]; }
+  });
+}
+
+// Accepte « 45.4562 » comme « 45,4562 » (Sheet en français)
+const parseCoord = v => parseFloat(String(v ?? '').trim().replace(',', '.'));
+
 function sheetRowToPlace(hdr, r) {
   const o = {};
   hdr.forEach((h, i) => o[h.trim()] = (r[i] || '').trim());
   return {
     city: o.city, name: o.name, type: o.type, price: o.price,
     rating: parseFloat(o.rating) || 0,
-    address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
+    address: o.address, lat: parseCoord(o.lat), lng: parseCoord(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
     badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: firstIcon(o.icon),
     ic: IC_MAP[o.type] || 'ic-restaurant',
@@ -2788,6 +2804,7 @@ function sheetRowToPlace(hdr, r) {
     const hdr = rows[0];
     const loaded = rows.slice(1).filter(r => r[0]).map(r => sheetRowToPlace(hdr, r));
     if (loaded.length < 10) return; // sanity check
+    fillMissingCoords(loaded);
     places = loaded;
     render();
     openFromHash();
