@@ -779,7 +779,7 @@
         <div class="hstat-l">villes</div>
       </div>
       <div class="hstat">
-        <div class="hstat-n">5</div>
+        <div class="hstat-n" id="stat-types">—</div>
         <div class="hstat-l">catégories</div>
       </div>
     </div>
@@ -2243,6 +2243,7 @@ function render() {
     filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '') +
     (tested.length && pending.length ? ` (dont ${pending.length} bientôt)` : '');
   document.getElementById('stat-total').textContent = guide.length + soon.length;
+  document.getElementById('stat-types').textContent = new Set(places.map(p => p.type).filter(Boolean)).size;
   document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
 
   ['milan','paris','lyon'].forEach(c => {
