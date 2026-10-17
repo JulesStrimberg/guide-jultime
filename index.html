@@ -225,8 +225,8 @@
     /* ── CITY CARDS ───────────────────────────────────── */
     .cities-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
     }
 
     .ccard {
@@ -253,6 +253,7 @@
     .ccard-milan .ccard-top { background: linear-gradient(135deg,#3B0764,#7C3AED,#A78BFA); }
     .ccard-paris .ccard-top { background: linear-gradient(135deg,#7F1D1D,#DC2626,#F87171); }
     .ccard-lyon  .ccard-top { background: linear-gradient(135deg,#78350F,#D97706,#FCD34D); }
+    .ccard-soon  .ccard-top { background: linear-gradient(135deg,#0F172A,#0E7490,#5EEAD4); }
 
     .ccard-badge {
       position: absolute;
@@ -317,6 +318,7 @@
     .ccard-milan .btn-list { background: #EDE9FE; color: #4C1D95; border-color: #7C3AED; }
     .ccard-paris .btn-list { background: #FEE2E2; color: #7F1D1D; border-color: #DC2626; }
     .ccard-lyon  .btn-list { background: #FEF3C7; color: #78350F; border-color: #D97706; }
+    .ccard-soon  .btn-list { background: #CCFBF1; color: #134E4A; border-color: #0E7490; cursor: pointer; }
 
     .btn-mapico {
       width: 38px; height: 38px;
@@ -389,6 +391,7 @@
     .fbtn[data-value="milan"].active  { background: #7C3AED; border-color: #7C3AED; }
     .fbtn[data-value="paris"].active  { background: #DC2626; border-color: #DC2626; }
     .fbtn[data-value="lyon"].active   { background: #D97706; border-color: #D97706; }
+    .fbtn[data-value="bientot"].active { background: #0E7490; border-color: #0E7490; }
     .fbtn[data-value="café"].active        { background: #92400E; border-color: #92400E; }
     .fbtn[data-value="restaurant"].active  { background: #991B1B; border-color: #991B1B; }
     .fbtn[data-value="bar"].active         { background: #1E3A8A; border-color: #1E3A8A; }
@@ -628,6 +631,8 @@
     .bm { background: #FF6B35; color: white; }
     .bf { background: #F72585; color: white; }
     .bg { background: #2DC653; color: white; }
+    .bs { background: #0E7490; color: white; }
+    .pcard-soon { border-style: dashed; }
 
     .pcard-body {
       padding: 0 1.15rem 0.9rem;
@@ -690,43 +695,7 @@
       display: none;
     }
 
-    /* ── BIENTÔT PEUT-ÊTRE (liste « À visiter ») ─────── */
-    .soon-section { padding-top: 1rem; }
-    .soon-count {
-      display: inline-block; margin-top: 0.6rem;
-      font-size: 0.75rem; font-weight: 800; color: #6B7280;
-      background: #F3F4F6; border-radius: 100px; padding: 0.2rem 0.7rem;
-    }
-    .soon-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 0.8rem;
-    }
-    .scard {
-      display: flex; align-items: center; gap: 0.75rem;
-      background: white; color: var(--dark); text-decoration: none;
-      border: 2px dashed #CBD5E1; border-radius: var(--rsm);
-      padding: 0.7rem 0.85rem;
-      transition: border-color 0.15s, transform 0.15s;
-      min-width: 0;
-    }
-    .scard:hover { border-color: var(--dark); transform: translateY(-2px); }
-    .scard .picon { width: 40px; height: 40px; font-size: 1.15rem; border-radius: 10px; opacity: 0.85; }
-    .scard-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
-    .scard-name {
-      font-family: 'Fredoka', sans-serif; font-size: 1rem; font-weight: 600;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .scard-addr {
-      font-size: 0.63rem; font-weight: 600; color: #9CA3AF;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .scard-go { font-size: 0.62rem; font-weight: 800; color: #6B7280; flex-shrink: 0; }
     .cp-other { background:#F3F4F6; color:#374151; border-color:#D1D5DB; }
-    .soon-empty {
-      grid-column: 1/-1; text-align: center; padding: 1.5rem;
-      font-weight: 700; color: #9CA3AF;
-    }
 
     /* ── FOOTER ───────────────────────────────────────── */
     footer {
@@ -769,9 +738,10 @@
     .rd1 { transition-delay: 0.1s; }
     .rd2 { transition-delay: 0.2s; }
     .rd3 { transition-delay: 0.3s; }
+    .rd4 { transition-delay: 0.4s; }
 
     /* ── RESPONSIVE ───────────────────────────────────── */
-    @media (max-width: 880px) {
+    @media (max-width: 1100px) {
       .cities-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 580px) {
@@ -882,6 +852,19 @@
       </div>
     </div>
 
+    <!-- BIENTÔT : lieux de la liste Google Maps « À visiter » (badge = "bientot" dans le Sheet) -->
+    <div class="ccard ccard-soon reveal rd4">
+      <div class="ccard-top">
+        <div class="ccard-badge" id="count-soon">— lieux</div>
+        <div class="ccard-emoji">👀</div>
+        <div class="ccard-name">Bientôt</div>
+        <div class="ccard-sub">Coming soon · dans le viseur</div>
+      </div>
+      <div class="ccard-bottom">
+        <button class="btn-list" onclick="showSoon()">👀 Voir les adresses à tester</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -912,6 +895,7 @@
       <button class="fbtn" data-filter="city" data-value="milan">🏛️ Milan</button>
       <button class="fbtn" data-filter="city" data-value="paris">🗼 Paris</button>
       <button class="fbtn" data-filter="city" data-value="lyon">🦁 Lyon</button>
+      <button class="fbtn" data-filter="city" data-value="bientot">👀 Bientôt</button>
     </div>
     <div class="fg">
       <span class="fg-lbl">Type</span>
@@ -948,20 +932,6 @@
   <div class="cards-grid" id="cards-grid">
     <p class="no-res" id="no-res">😢 Aucune adresse pour ces filtres...</p>
   </div>
-</div>
-
-<!-- ╔═══════════════════════════════╗ -->
-<!-- ║  BIENTÔT PEUT-ÊTRE            ║ -->
-<!-- ╚═══════════════════════════════╝ -->
-<!-- Lieux de la liste Google Maps « À visiter » : badge = "bientot"
-     dans le Sheet / places.csv. Pas encore testés → ni note ni avis. -->
-<div id="bientot" class="section soon-section" style="display:none">
-  <div class="sec-head">
-    <h2>Bientôt peut-être dans ce guide 👀</h2>
-    <p>Ma liste « À visiter » — pas encore testé, donc pas de note ni d'avis</p>
-    <span class="soon-count" id="soon-count"></span>
-  </div>
-  <div class="soon-grid" id="soon-grid"></div>
 </div>
 
 <!-- ╔═══════════════════════════════╗ -->
@@ -2187,6 +2157,13 @@ let places = [
     mapsLink:"https://www.google.com/maps/place/Archibon+Wine+Bar+%2F+Wine+Tasting/data=!4m2!3m1!1s0x47e66e15f7c95555:0x89425ec516ffaeaa", icon:"🍷", ic:"ic-bar", autres_adresses:"" }
 ];
 
+// Une seule icône par adresse : on garde le premier emoji (ex. "☕🥐" → "☕")
+function firstIcon(raw) {
+  const m = String(raw || '').match(/\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*/u);
+  return m ? m[0] : (raw || '');
+}
+places.forEach(p => p.icon = firstIcon(p.icon));
+
 // ══════════════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════════════
@@ -2198,6 +2175,7 @@ function starsHtml(r) {
 }
 
 const BADGES = {
+  bientot: ['bs','👀 Bientôt'],
   must: ['bm','🔥 Incontournable'],
   fav:  ['bf','❤️ Coup de cœur'],
   gem:  ['bg','💎 Pépite']
@@ -2209,8 +2187,8 @@ const BADGES = {
 const act = { city:'all', type:'all', price:'all', q:'', sort:'default' };
 
 // Catégorie « Bientôt peut-être dans ce guide » (liste Google Maps « À visiter ») :
-// repérée par badge = "bientot" ; ces lieux restent hors du guide, des compteurs,
-// des cartes Leaflet et de Luc-IA.
+// repérée par badge = "bientot" ; affichée via le filtre ville « bientot » (4e carte ville),
+// hors du guide par défaut, des compteurs, des cartes Leaflet et de Luc-IA.
 const SOON_BADGES = ['bientot', 'bientôt', 'soon'];
 const isSoon = p => SOON_BADGES.includes(String(p.badge || '').trim().toLowerCase());
 const guidePlaces = () => places.filter(p => !isSoon(p));
@@ -2223,7 +2201,7 @@ const matchesSearch = p => {
   return words.every(w => hay.includes(w));
 };
 const matchesFilters = p =>
-  (act.city  === 'all' || p.city  === act.city)  &&
+  (act.city  === 'all' || act.city === 'bientot' || p.city === act.city) &&
   (act.type  === 'all' || p.type  === act.type)  &&
   (act.price === 'all' || p.price === act.price) &&
   matchesSearch(p);
@@ -2238,39 +2216,11 @@ const SORTS = {
 const CITY_LABEL = { milan:'Milan', paris:'Paris', lyon:'Lyon',
   naples:'Naples', 'saint-sebastien':'Saint-Sébastien', 'la-destrousse':'La Destrousse' };
 const cityLabelOf = c => CITY_LABEL[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '');
-const esc = s => String(s ?? '').replace(/[&<>"']/g, ch =>
-  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 
-function renderSoon() {
-  const section = document.getElementById('bientot');
-  const grid = document.getElementById('soon-grid');
-  const all = places.filter(isSoon);
-  section.style.display = all.length ? '' : 'none';
-  if (!all.length) return;
-
-  const shown = all.filter(matchesFilters);
-  document.getElementById('soon-count').textContent =
-    all.length + ' lieu' + (all.length > 1 ? 'x' : '') + ' en attente';
-  grid.innerHTML = shown.length ? shown.map(p => {
-    const known = ['milan', 'paris', 'lyon'].includes(p.city);
-    const meta = [p.type ? p.type.charAt(0).toUpperCase() + p.type.slice(1) : '', p.price]
-      .filter(Boolean).join(' · ');
-    const link = /^https?:\/\//.test(p.mapsLink || '') ? p.mapsLink
-      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + (p.address || cityLabelOf(p.city)));
-    return `
-      <a class="scard" href="${esc(link)}" target="_blank" rel="noopener" data-type="${esc(p.type)}">
-        <span class="picon ${esc(p.ic || 'ic-restaurant')}">${esc(p.icon || '📍')}</span>
-        <span class="scard-main">
-          <span class="scard-name">${esc(p.name)}</span>
-          <span class="pmeta">
-            <span class="cpill ${known ? 'cp-' + p.city : 'cp-other'}">${esc(cityLabelOf(p.city))}</span>
-            ${meta ? `<span class="tpill">${esc(meta)}</span>` : ''}
-          </span>
-          ${p.address ? `<span class="scard-addr">📍 ${esc(p.address)}</span>` : ''}
-        </span>
-        <span class="scard-go">Maps →</span>
-      </a>`;
-  }).join('') : '<p class="soon-empty">Rien en attente pour ces filtres.</p>';
+// Filtre ville « bientot » = lieux « À visiter » ; sinon le guide (sans eux)
+function showSoon() {
+  document.querySelector('.fbtn[data-filter="city"][data-value="bientot"]').click();
+  document.getElementById('places').scrollIntoView({ behavior: 'smooth' });
 }
 
 function render() {
@@ -2278,7 +2228,8 @@ function render() {
   grid.querySelectorAll('.pcard').forEach(c => c.remove());
 
   const guide = guidePlaces();
-  const filtered = guide.filter(matchesFilters);
+  const soon = places.filter(isSoon);
+  const filtered = (act.city === 'bientot' ? soon : guide).filter(matchesFilters);
   if (SORTS[act.sort]) filtered.sort(SORTS[act.sort]);
 
   document.getElementById('res-count').textContent =
@@ -2290,11 +2241,11 @@ function render() {
     const n = guide.filter(p => p.city === c).length;
     document.getElementById('count-'+c).textContent = n + ' adresse' + (n>1?'s':'');
   });
-  renderSoon();
+  document.getElementById('count-soon').textContent = soon.length + ' lieu' + (soon.length>1?'x':'');
 
   filtered.forEach((p, i) => {
     const card = document.createElement('div');
-    card.className = 'pcard';
+    card.className = isSoon(p) ? 'pcard pcard-soon' : 'pcard';
     card.setAttribute('data-type', p.type);
     card.style.animationDelay = `${i*0.04}s`;
     const cityLabel = cityLabelOf(p.city);
@@ -2308,7 +2259,7 @@ function render() {
         <div class="pcard-info">
           <div class="pcard-name">${p.name}</div>
           <div class="pmeta">
-            <span class="cpill cp-${p.city}">${cityLabel}</span>
+            <span class="cpill ${CITY_LABEL[p.city] ? 'cp-' + p.city : 'cp-other'}">${cityLabel}</span>
             <span class="tpill">${typeLabel}</span>
             ${['y','Y','oui','yes'].includes(p.autres_adresses) ? '<span class="multi-tag">📍 Plusieurs adresses</span>' : ''}
           </div>
@@ -2316,11 +2267,11 @@ function render() {
         ${blbl ? `<div class="pbadge ${bcls}">${blbl}</div>` : ''}
       </div>
       <div class="pcard-body">
-        ${p.desc ? `<p class="pdesc">${p.desc}</p>` : '<p class="pdesc pdesc-soon">Avis à venir ✍️</p>'}
+        ${p.desc ? `<p class="pdesc">${p.desc}</p>` : `<p class="pdesc pdesc-soon">${isSoon(p) ? 'Dans le viseur, pas encore testé 👀' : 'Avis à venir ✍️'}</p>`}
         ${p.tags.length ? `<div class="ptags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>` : ''}
       </div>
       <div class="pcard-foot">
-        ${p.rating ? `<span class="stars">${starsHtml(p.rating)}</span>` : '<span class="stars stars-none">Pas encore noté</span>'}
+        ${p.rating ? `<span class="stars">${starsHtml(p.rating)}</span>` : `<span class="stars stars-none">${isSoon(p) ? 'Pas encore testé' : 'Pas encore noté'}</span>`}
         <span class="pprice">${p.price}</span>
         <span class="paddr">📍 ${p.address}</span>
         <a href="${p.mapsLink}" target="_blank" rel="noopener" class="btn-go">Maps →</a>
@@ -2634,7 +2585,7 @@ function sheetRowToPlace(hdr, r) {
     rating: parseFloat(o.rating) || 0,
     address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
-    badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: o.icon,
+    badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: firstIcon(o.icon),
     ic: IC_MAP[o.type] || 'ic-restaurant',
     autres_adresses: o.autres_adresses || ''
   };
@@ -2658,17 +2609,13 @@ function sheetRowToPlace(hdr, r) {
 // ══════════════════════════════════════════════════════
 //  LUC-IA — recherche en langage naturel (Groq / LLaMA)
 // ══════════════════════════════════════════════════════
-const GROQ_KEY = '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';
+// Luc-IA passe par un Cloudflare Worker (dossier worker/) qui garde la clé Groq secrète.
+// Remplace par l'URL de ton Worker une fois déployé.
+const LUCIA_URL = 'https://luc-ia.REMPLACER.workers.dev';
 
 document.getElementById('ai-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') askAI();
 });
-
-function buildPlacesContext() {
-  return guidePlaces().map(p =>
-    `[${p.city.toUpperCase()}] ${p.name} | ${p.type} | ${p.price} | ${p.rating}★ | ${p.desc} | Tags: ${p.tags.join(', ')}`
-  ).join('\n');
-}
 
 async function askAI() {
   const input = document.getElementById('ai-input');
@@ -2676,9 +2623,9 @@ async function askAI() {
   const box   = document.getElementById('ai-result');
   const query = input.value.trim();
   if (!query) { input.focus(); return; }
-  if (!GROQ_KEY) {
+  if (LUCIA_URL.includes('REMPLACER')) {
     box.style.display = 'block';
-    box.innerHTML = '<div class="ai-loading">⚠️ Clé API non configurée.</div>';
+    box.innerHTML = '<div class="ai-loading">⚠️ Luc-IA n\'est pas encore branchée.</div>';
     return;
   }
 
@@ -2691,47 +2638,15 @@ async function askAI() {
 
   document.querySelectorAll('.pcard.ai-highlight').forEach(c => c.classList.remove('ai-highlight'));
 
-  const systemPrompt = `Tu es Luc-IA, l'assistante du Guide Jultime — celle qui a toujours toutes les infos sur les meilleures adresses de Milan, Paris et Lyon.
-Voici la liste complète des adresses disponibles (une par ligne) :
-${buildPlacesContext()}
-
-L'utilisateur cherche : "${query}"
-
-Recommande exactement 2 ou 3 adresses de la liste qui correspondent le mieux à sa recherche.
-Réponds UNIQUEMENT en JSON valide, sans texte autour, au format :
-{
-  "recs": [
-    { "name": "Nom exact de l'adresse", "city": "milan|paris|lyon", "why": "Courte explication chaleureuse en français (1-2 phrases max)" },
-    ...
-  ]
-}
-Utilise uniquement des noms qui apparaissent exactement dans la liste. Ne modifie pas les noms.`;
-
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch(LUCIA_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: systemPrompt }],
-        temperature: 0.4,
-        max_tokens: 512
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
     });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      const msg = errData?.error?.message || 'HTTP ' + res.status;
-      throw new Error(msg);
-    }
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content || '';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON in response');
-    const parsed = JSON.parse(jsonMatch[0]);
-    renderAIResult(parsed.recs || []);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    renderAIResult(data.recs || []);
   } catch(e) {
     box.innerHTML = `<div class="ai-loading">😕 Erreur : ${e.message}</div>`;
   } finally {

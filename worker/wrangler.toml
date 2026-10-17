@@ -1,0 +1,17 @@
+# Déploiement en ligne de commande (optionnel) : npx wrangler deploy
+# Puis : npx wrangler secret put GROQ_API_KEY
+name = "luc-ia"
+main = "luc-ia.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://julesstrimberg.github.io"
+
+# 10 questions par minute et par IP
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
