@@ -2242,7 +2242,7 @@ function render() {
   document.getElementById('res-count').textContent =
     filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '') +
     (tested.length && pending.length ? ` (dont ${pending.length} bientôt)` : '');
-  document.getElementById('stat-total').textContent = guide.length;
+  document.getElementById('stat-total').textContent = guide.length + soon.length;
   document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
 
   ['milan','paris','lyon'].forEach(c => {
@@ -2618,8 +2618,8 @@ function sheetRowToPlace(hdr, r) {
 //  LUC-IA — recherche en langage naturel (Groq / LLaMA)
 // ══════════════════════════════════════════════════════
 // Luc-IA passe par un Cloudflare Worker (dossier worker/) qui garde la clé Groq secrète.
-// Remplace par l'URL de ton Worker une fois déployé.
-const LUCIA_URL = 'https://luc-ia.REMPLACER.workers.dev';
+// URL du Worker déployé (voir worker/README.md).
+const LUCIA_URL = 'https://luc-ia-guidejultime.strimbergjules.workers.dev';
 
 document.getElementById('ai-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') askAI();
