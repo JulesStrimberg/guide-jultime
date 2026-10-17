@@ -8,7 +8,9 @@
 
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5w17--h8WAdc4NritirRSbJdCjGdGnm7oytFYRZFDz-x__jsRWULdOcL_cmt0MJlvm7c17zf75g9n/pub?gid=1622534072&single=true&output=csv';
 const GROQ_URL  = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL     = 'llama-3.3-70b-versatile';
+// llama-3.3-70b-versatile a été retiré par Groq le 16/08/2026 ; remplaçant recommandé.
+// Surchargeable par la variable GROQ_MODEL (Settings du Worker) sans toucher au code.
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 const MAX_QUERY = 200;
 // Sites autorisés à appeler Luc-IA (surchargeable par la variable ALLOWED_ORIGINS, séparée par des virgules)
 const DEFAULT_ORIGINS = 'https://julesstrimberg.github.io';
@@ -51,10 +53,12 @@ export default {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.GROQ_API_KEY}` },
       body: JSON.stringify({
-        model: MODEL,
+        model: env.GROQ_MODEL || DEFAULT_MODEL,
         messages: [{ role: 'user', content: buildPrompt(places, query) }],
         temperature: 0.4,
-        max_tokens: 512
+        // gpt-oss raisonne avant de répondre : effort bas et marge de tokens pour le JSON final
+        reasoning_effort: 'low',
+        max_tokens: 2048
       })
     });
     if (!res.ok) {
