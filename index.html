@@ -2658,17 +2658,13 @@ function sheetRowToPlace(hdr, r) {
 // ══════════════════════════════════════════════════════
 //  LUC-IA — recherche en langage naturel (Groq / LLaMA)
 // ══════════════════════════════════════════════════════
-const GROQ_KEY = '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';
+// Luc-IA passe par un Cloudflare Worker (dossier worker/) qui garde la clé Groq secrète.
+// Remplace par l'URL de ton Worker une fois déployé.
+const LUCIA_URL = 'https://luc-ia.REMPLACER.workers.dev';
 
 document.getElementById('ai-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') askAI();
 });
-
-function buildPlacesContext() {
-  return guidePlaces().map(p =>
-    `[${p.city.toUpperCase()}] ${p.name} | ${p.type} | ${p.price} | ${p.rating}★ | ${p.desc} | Tags: ${p.tags.join(', ')}`
-  ).join('\n');
-}
 
 async function askAI() {
   const input = document.getElementById('ai-input');
@@ -2676,9 +2672,9 @@ async function askAI() {
   const box   = document.getElementById('ai-result');
   const query = input.value.trim();
   if (!query) { input.focus(); return; }
-  if (!GROQ_KEY) {
+  if (LUCIA_URL.includes('REMPLACER')) {
     box.style.display = 'block';
-    box.innerHTML = '<div class="ai-loading">⚠️ Clé API non configurée.</div>';
+    box.innerHTML = '<div class="ai-loading">⚠️ Luc-IA n\'est pas encore branchée.</div>';
     return;
   }
 
@@ -2691,47 +2687,15 @@ async function askAI() {
 
   document.querySelectorAll('.pcard.ai-highlight').forEach(c => c.classList.remove('ai-highlight'));
 
-  const systemPrompt = `Tu es Luc-IA, l'assistante du Guide Jultime — celle qui a toujours toutes les infos sur les meilleures adresses de Milan, Paris et Lyon.
-Voici la liste complète des adresses disponibles (une par ligne) :
-${buildPlacesContext()}
-
-L'utilisateur cherche : "${query}"
-
-Recommande exactement 2 ou 3 adresses de la liste qui correspondent le mieux à sa recherche.
-Réponds UNIQUEMENT en JSON valide, sans texte autour, au format :
-{
-  "recs": [
-    { "name": "Nom exact de l'adresse", "city": "milan|paris|lyon", "why": "Courte explication chaleureuse en français (1-2 phrases max)" },
-    ...
-  ]
-}
-Utilise uniquement des noms qui apparaissent exactement dans la liste. Ne modifie pas les noms.`;
-
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch(LUCIA_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: systemPrompt }],
-        temperature: 0.4,
-        max_tokens: 512
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
     });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      const msg = errData?.error?.message || 'HTTP ' + res.status;
-      throw new Error(msg);
-    }
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content || '';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON in response');
-    const parsed = JSON.parse(jsonMatch[0]);
-    renderAIResult(parsed.recs || []);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    renderAIResult(data.recs || []);
   } catch(e) {
     box.innerHTML = `<div class="ai-loading">😕 Erreur : ${e.message}</div>`;
   } finally {
