@@ -419,6 +419,79 @@
       font-weight: 800; font-size: 0.72rem;
       color: #9CA3AF;
     }
+    .fnear {
+      padding: 0.45rem 0.85rem; border-radius: 100px;
+      border: 2px solid #E5E7EB; background: white; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--dark);
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .fnear:hover { border-color: var(--dark); }
+    .fnear.active { background: #059669; border-color: #059669; color: white; }
+    .fg-hint { font-size: 0.6rem; font-weight: 700; color: #B0B7C3; letter-spacing: 0; text-transform: none; }
+
+    /* Filtres : colonne collante sur grand écran, tiroir latéral sur mobile */
+    .places-layout { display: block; }
+    .filters-close, .filters-fab, .filters-backdrop { display: none; }
+    @media (min-width: 1000px) {
+      .places-layout {
+        display: grid; grid-template-columns: 280px minmax(0, 1fr);
+        gap: 1.5rem; align-items: start;
+      }
+      .places-layout .filters-slot { align-self: stretch; }
+      .places-layout .filters-bar {
+        position: sticky; top: 1rem; margin-bottom: 0;
+        max-height: calc(100vh - 2rem); overflow-y: auto;
+        flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+        padding: 1.1rem 1.1rem 1.25rem; gap: 0.9rem;
+      }
+      .places-layout .fg + .fg { padding-left: 0; border-left: none; border-top: 2px solid #F3F4F6; padding-top: 0.8rem; }
+      .places-layout .fg-lbl { flex-basis: 100%; }
+      .places-layout .fg-search { flex-direction: column; align-items: stretch; flex: none; }
+      .places-layout .fsearch { flex: none; }
+      .places-layout .res-count { margin-left: 0; }
+    }
+    @media (max-width: 999.98px) {
+      .filters-fab {
+        position: fixed; left: 1rem; bottom: 1rem; z-index: 900;
+        display: flex; align-items: center; gap: 0.4rem;
+        padding: 0.7rem 1.1rem; border-radius: 100px;
+        background: var(--dark); color: white; border: 3px solid var(--dark);
+        box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem; cursor: pointer;
+        transform: translateX(-140%); transition: transform 0.25s ease;
+      }
+      .filters-fab.show { transform: none; }
+      body.filters-open .filters-bar {
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 1000;
+        width: min(340px, 88vw); margin: 0; border-radius: 0 var(--r) var(--r) 0;
+        overflow-y: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+        animation: drawerIn 0.25s ease;
+      }
+      body.filters-open .fg + .fg { padding-left: 0; border-left: none; border-top: 2px solid #F3F4F6; padding-top: 0.6rem; }
+      body.filters-open .fg-search { flex-direction: column; align-items: stretch; flex: none; }
+      body.filters-open .fsearch { flex: none; }
+      body.filters-open .fg-lbl { flex-basis: 100%; }
+      body.filters-open .res-count { margin-left: 0; }
+      body.filters-open .filters-close {
+        display: block; position: sticky; bottom: 0; margin-top: auto;
+        padding: 0.75rem; border-radius: var(--rsm); border: none; cursor: pointer;
+        background: var(--dark); color: white;
+        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem;
+      }
+      body.filters-open .filters-backdrop {
+        display: block; position: fixed; inset: 0; z-index: 999; background: rgba(15,23,42,0.45);
+      }
+      body.filters-open .filters-fab { display: none; }
+    }
+    @keyframes drawerIn { from { transform: translateX(-100%); } to { transform: none; } }
+
+    .pdist { font-size: 0.62rem; font-weight: 800; color: #059669; flex-shrink: 0; }
+    .btn-share {
+      background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:20px;
+      padding:4px 12px; font-size:0.75rem; font-weight:700; color:#6B7280;
+      cursor:pointer; transition:all 0.15s; font-family:'Nunito',sans-serif; margin-left: auto;
+    }
+    .btn-share:hover { border-color: var(--dark); color: var(--dark); }
 
     /* ── AI SEARCH ──────────────────────────────────── */
     .ai-wrap {
@@ -749,6 +822,7 @@
       .filters-bar { flex-direction: column; align-items: flex-start; }
       .fg + .fg { padding-left: 0; border-left: none; border-top: 2px solid #F3F4F6; padding-top: 0.6rem; width: 100%; }
       .res-count { margin-left: 0; }
+      .fg-lbl { flex-basis: 100%; }
     }
   </style>
 </head>
@@ -877,7 +951,9 @@
     <p>Filtre par ville, type ou budget — et pars à l'aventure</p>
   </div>
 
-  <div class="filters-bar reveal">
+  <div class="places-layout">
+  <div class="filters-slot" id="filters-slot">
+  <div class="filters-bar" id="filters-bar">
     <div class="fg fg-search">
       <input type="search" class="fsearch" id="fsearch" placeholder="🔎 Nom, quartier, envie… (navigli, brunch)" aria-label="Rechercher une adresse">
       <select class="fsort" id="fsort" aria-label="Trier les adresses">
@@ -887,7 +963,9 @@
         <option value="price-asc">Prix croissant</option>
         <option value="price-desc">Prix décroissant</option>
         <option value="name">A → Z</option>
+        <option value="near">📍 Autour de moi</option>
       </select>
+      <button type="button" class="fnear" id="fnear">📍 Autour de moi</button>
     </div>
     <div class="fg">
       <span class="fg-lbl">Ville</span>
@@ -898,7 +976,7 @@
       <button class="fbtn" data-filter="city" data-value="bientot">👀 Bientôt</button>
     </div>
     <div class="fg">
-      <span class="fg-lbl">Type</span>
+      <span class="fg-lbl">Type <span class="fg-hint">· plusieurs choix possibles</span></span>
       <button class="fbtn active" data-filter="type" data-value="all">Tous</button>
       <button class="fbtn" data-filter="type" data-value="café">☕ Café</button>
       <button class="fbtn" data-filter="type" data-value="restaurant">🍽️ Resto</button>
@@ -909,15 +987,18 @@
       <button class="fbtn" data-filter="type" data-value="sortie">🏛️ Sortie</button>
     </div>
     <div class="fg">
-      <span class="fg-lbl">Budget</span>
+      <span class="fg-lbl">Budget <span class="fg-hint">· plusieurs choix possibles</span></span>
       <button class="fbtn active" data-filter="price" data-value="all">Tous</button>
       <button class="fbtn" data-filter="price" data-value="€">€</button>
       <button class="fbtn" data-filter="price" data-value="€€">€€</button>
       <button class="fbtn" data-filter="price" data-value="€€€">€€€</button>
     </div>
     <span class="res-count" id="res-count"></span>
+    <button type="button" class="filters-close" onclick="toggleFilters(false)">Voir les adresses →</button>
+  </div>
   </div>
 
+  <div class="places-main">
   <div class="ai-wrap">
     <div class="ai-bar">
       <span class="ai-icon">✨</span>
@@ -932,7 +1013,11 @@
   <div class="cards-grid" id="cards-grid">
     <p class="no-res" id="no-res">😢 Aucune adresse pour ces filtres...</p>
   </div>
+  </div>
+  </div>
 </div>
+<button type="button" class="filters-fab" id="filters-fab" onclick="toggleFilters(true)">⚙️ Filtres · <span id="fab-count"></span></button>
+<div class="filters-backdrop" onclick="toggleFilters(false)"></div>
 
 <!-- ╔═══════════════════════════════╗ -->
 <!-- ║  FOOTER                       ║ -->
@@ -2184,7 +2269,8 @@ const BADGES = {
 // ══════════════════════════════════════════════════════
 //  FILTER STATE
 // ══════════════════════════════════════════════════════
-const act = { city:'all', type:'all', price:'all', q:'', sort:'default' };
+// type et price : ensembles (vides = tous) ; city : une seule valeur
+const act = { city:'all', type:new Set(), price:new Set(), q:'', sort:'default', pos:null };
 
 // Catégorie « Bientôt peut-être dans ce guide » (liste Google Maps « À visiter ») :
 // repérée par badge = "bientot" ; affichée via le filtre ville « bientot » (4e carte ville),
@@ -2202,8 +2288,8 @@ const matchesSearch = p => {
 };
 const matchesFilters = p =>
   (act.city  === 'all' || act.city === 'bientot' || p.city === act.city) &&
-  (act.type  === 'all' || p.type  === act.type)  &&
-  (act.price === 'all' || p.price === act.price) &&
+  (!act.type.size  || act.type.has(p.type))   &&
+  (!act.price.size || act.price.has(p.price)) &&
   matchesSearch(p);
 const BADGE_RANK = { must: 0, fav: 1, gem: 2 };
 const SORTS = {
@@ -2211,8 +2297,18 @@ const SORTS = {
   rating:       (a, b) => b.rating - a.rating,
   'price-asc':  (a, b) => (a.price || '').length - (b.price || '').length,
   'price-desc': (a, b) => (b.price || '').length - (a.price || '').length,
-  name:         (a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+  name:         (a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }),
+  near:         (a, b) => distKm(a) - distKm(b)
 };
+// Distance (km) entre la position de l'utilisateur et un lieu ; Infinity si inconnue
+function distKm(p) {
+  if (!act.pos || !isFinite(p.lat) || !isFinite(p.lng)) return Infinity;
+  const R = 6371, rad = x => x * Math.PI / 180;
+  const dLat = rad(p.lat - act.pos.lat), dLng = rad(p.lng - act.pos.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(rad(act.pos.lat)) * Math.cos(rad(p.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const fmtDist = km => km < 1 ? Math.round(km * 1000 / 10) * 10 + ' m' : (km < 10 ? km.toFixed(1).replace('.', ',') : Math.round(km)) + ' km';
 const CITY_LABEL = { milan:'Milan', paris:'Paris', lyon:'Lyon',
   naples:'Naples', 'saint-sebastien':'Saint-Sébastien', 'la-destrousse':'La Destrousse' };
 const cityLabelOf = c => CITY_LABEL[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '');
@@ -2242,6 +2338,7 @@ function render() {
   document.getElementById('res-count').textContent =
     filtered.length + ' adresse' + (filtered.length > 1 ? 's' : '') +
     (tested.length && pending.length ? ` (dont ${pending.length} bientôt)` : '');
+  document.getElementById('fab-count').textContent = filtered.length;
   document.getElementById('stat-total').textContent = guide.length + soon.length;
   document.getElementById('stat-types').textContent = new Set(places.map(p => p.type).filter(Boolean)).size;
   document.getElementById('no-res').style.display = filtered.length ? 'none' : 'block';
@@ -2282,12 +2379,14 @@ function render() {
       <div class="pcard-foot">
         ${p.rating ? `<span class="stars">${starsHtml(p.rating)}</span>` : `<span class="stars stars-none">${isSoon(p) ? 'Pas encore testé' : 'Pas encore noté'}</span>`}
         <span class="pprice">${p.price}</span>
+        ${act.sort === 'near' && isFinite(distKm(p)) ? `<span class="pdist">à ${fmtDist(distKm(p))}</span>` : ''}
         <span class="paddr">📍 ${p.address}</span>
         <a href="${p.mapsLink}" target="_blank" rel="noopener" class="btn-go">Maps →</a>
       </div>
       <div class="pcard-social">
         <button class="btn-like" data-pid="${pid}" onclick="toggleLike('${pid}',this)">❤️ <span class="lc">·</span></button>
         <button class="btn-comments" data-pid="${pid}" onclick="toggleComments('${pid}',this)">💬 <span class="cc">Commenter</span></button>
+        <button class="btn-share" onclick="sharePlace('${pid}',this)" title="Partager cette adresse">🔗 Partager</button>
       </div>
       <div class="comment-section" id="cs-${pid}" style="display:none">
         <div class="comments-list" id="cl-${pid}"></div>
@@ -2302,22 +2401,100 @@ function render() {
   if (typeof observeSocialCards === 'function') observeSocialCards();
 }
 
+// Ville : un seul choix. Type / Budget : cumulables, « Tous » remet à zéro.
+function syncFilterButtons() {
+  document.querySelectorAll('.fbtn').forEach(b => {
+    const ft = b.dataset.filter, v = b.dataset.value;
+    b.classList.toggle('active', ft === 'city' ? act.city === v
+      : v === 'all' ? !act[ft].size : act[ft].has(v));
+  });
+}
 document.querySelectorAll('.fbtn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const ft = btn.dataset.filter;
-    document.querySelectorAll(`[data-filter="${ft}"]`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    act[ft] = btn.dataset.value;
+    const ft = btn.dataset.filter, v = btn.dataset.value;
+    if (ft === 'city') act.city = v;
+    else if (v === 'all') act[ft].clear();
+    else act[ft].has(v) ? act[ft].delete(v) : act[ft].add(v);
+    syncFilterButtons();
     render();
   });
 });
+
+// « Autour de moi » : tri par distance à partir de la position du téléphone
+const SORT_BEFORE_NEAR = { v: 'default' };
+function setSort(v) {
+  act.sort = v;
+  document.getElementById('fsort').value = v;
+  document.getElementById('fnear').classList.toggle('active', v === 'near');
+  render();
+}
+function askNear() {
+  if (act.sort === 'near') return setSort(SORT_BEFORE_NEAR.v);
+  if (!navigator.geolocation) return alert('La géolocalisation n\'est pas disponible sur cet appareil.');
+  const btn = document.getElementById('fnear');
+  btn.textContent = '📍 Localisation…';
+  navigator.geolocation.getCurrentPosition(pos => {
+    btn.textContent = '📍 Autour de moi';
+    act.pos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    SORT_BEFORE_NEAR.v = act.sort === 'near' ? 'default' : act.sort;
+    setSort('near');
+  }, () => {
+    btn.textContent = '📍 Autour de moi';
+    document.getElementById('fsort').value = act.sort;
+    alert('Impossible d\'obtenir ta position. Autorise la localisation pour ce site puis réessaie.');
+  }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+}
+document.getElementById('fnear').addEventListener('click', askNear);
+
+// Tiroir de filtres (mobile) + bouton flottant visible quand la barre n'est plus à l'écran
+function toggleFilters(open) {
+  const slot = document.getElementById('filters-slot');
+  if (open) slot.style.minHeight = slot.offsetHeight + 'px';  // évite que la page saute
+  document.body.classList.toggle('filters-open', open);
+  if (!open) slot.style.minHeight = '';
+}
+(() => {
+  const fab = document.getElementById('filters-fab');
+  let barVisible = true, placesVisible = false;
+  const update = () => fab.classList.toggle('show', !barVisible && placesVisible);
+  new IntersectionObserver(([e]) => { barVisible = e.isIntersecting; update(); })
+    .observe(document.getElementById('filters-slot'));
+  new IntersectionObserver(([e]) => { placesVisible = e.isIntersecting; update(); })
+    .observe(document.getElementById('cards-grid'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleFilters(false); });
+})();
+
+// Lien partageable : #a=<identifiant> ouvre le site sur l'adresse
+function placeUrl(pid) { return location.href.split('#')[0] + '#a=' + pid; }
+async function sharePlace(pid, btn) {
+  const card = document.querySelector(`[data-spid="${pid}"]`);
+  const name = card?.querySelector('.pcard-name')?.textContent || 'Le Guide Jultime';
+  const url = placeUrl(pid);
+  if (navigator.share) {
+    try { await navigator.share({ title: name, text: name + ' — Le Guide Jultime', url }); } catch (e) {}
+    return;
+  }
+  try { await navigator.clipboard.writeText(url); }
+  catch (e) { prompt('Copie ce lien :', url); return; }
+  const old = btn.textContent;
+  btn.textContent = '✅ Lien copié';
+  setTimeout(() => { btn.textContent = old; }, 1800);
+}
+function openFromHash() {
+  const m = location.hash.match(/^#a=([a-z0-9_]+)$/);
+  if (m) scrollToCard(m[1]);
+}
+window.addEventListener('hashchange', openFromHash);
 
 let searchTimer;
 document.getElementById('fsearch').addEventListener('input', e => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { act.q = e.target.value; render(); }, 150);
 });
-document.getElementById('fsort').addEventListener('change', e => { act.sort = e.target.value; render(); });
+document.getElementById('fsort').addEventListener('change', e => {
+  if (e.target.value === 'near' && !act.pos) { e.target.value = act.sort; return askNear(); }
+  setSort(e.target.value);
+});
 
 // ══════════════════════════════════════════════════════
 //  LEAFLET MAPS
@@ -2547,6 +2724,7 @@ function observeSocialCards() {
 }
 
 render();
+openFromHash();
 
 // ══════════════════════════════════════════════════════
 //  GOOGLE SHEETS SYNC — live data source
@@ -2612,6 +2790,7 @@ function sheetRowToPlace(hdr, r) {
     if (loaded.length < 10) return; // sanity check
     places = loaded;
     render();
+    openFromHash();
   } catch (e) { /* silently use hardcoded fallback */ }
 })();
 
@@ -2707,10 +2886,9 @@ function highlightCard(pid) {
 }
 
 function scrollToCard(pid) {
-  act.city = 'all'; act.type = 'all'; act.price = 'all';
-  document.querySelectorAll('.fbtn').forEach(b => {
-    b.classList.toggle('active', b.dataset.value === 'all');
-  });
+  act.city = 'all'; act.type.clear(); act.price.clear(); act.q = '';
+  document.getElementById('fsearch').value = '';
+  syncFilterButtons();
   render();
   setTimeout(() => {
     const card = document.querySelector(`[data-spid="${pid}"]`);
