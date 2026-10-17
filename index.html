@@ -2080,6 +2080,16 @@ function parseSheetCSV(text) {
   return rows;
 }
 
+// Un seul badge par adresse : on garde le premier reconnu (ex. "gem|must" → gem)
+const BADGE_ALIASES = { must:'must', incontournable:'must', fav:'fav', 'coup de coeur':'fav', 'coup de cœur':'fav', gem:'gem', 'pépite':'gem', pepite:'gem' };
+function firstBadge(raw) {
+  for (const part of (raw || '').toLowerCase().split(/[|,;\/+]/)) {
+    const k = BADGE_ALIASES[part.replace(/[^\p{L}\s]/gu, '').trim()];
+    if (k) return k;
+  }
+  return null;
+}
+
 function sheetRowToPlace(hdr, r) {
   const o = {};
   hdr.forEach((h, i) => o[h.trim()] = (r[i] || '').trim());
@@ -2088,7 +2098,7 @@ function sheetRowToPlace(hdr, r) {
     rating: parseFloat(o.rating) || 0,
     address: o.address, lat: parseFloat(o.lat), lng: parseFloat(o.lng),
     desc: o.desc, tags: o.tags ? o.tags.split('|') : [],
-    badge: o.badge || null, mapsLink: o.mapsLink, icon: o.icon,
+    badge: firstBadge(o.badge), mapsLink: o.mapsLink, icon: o.icon,
     ic: IC_MAP[o.type] || 'ic-restaurant',
     autres_adresses: o.autres_adresses || ''
   };
